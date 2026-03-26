@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "MedGuide"
+version = "1.0.0"
+id = "artifacts/medguide"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21208
+
+[services.development]
+run = "pnpm --filter @workspace/medguide run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/medguide", "run", "build" ]
+publicDir = "artifacts/medguide/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21208"
+BASE_PATH = "/"
