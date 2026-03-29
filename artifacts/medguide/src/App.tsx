@@ -497,71 +497,199 @@ function HowItWorks() {
   );
 }
 
-/* ── Doctor Card ─────────────────────────────────────────────────────── */
-function DoctorCard() {
+/* ── Doctors Section ─────────────────────────────────────────────────── */
+type Doctor = {
+  name: string;
+  specialty: string;
+  address: string;
+  phone?: string;
+  timing?: string;
+  exp?: string;
+  hasPhoto?: boolean;
+};
+
+const DOCTORS: Doctor[] = [
+  { name:"Dr. R.N. Yadav",                specialty:"Cardiologist",         address:"Heart Care Center, Indore",                          exp:"20+ yrs exp" },
+  { name:"Dr. Girish Kawthekar",           specialty:"Cardiologist",         address:"Medanta Hospital, Vijay Nagar",                       phone:"0731-474-7185", exp:"41+ yrs exp" },
+  { name:"Dr. Sagheer Ahmad Qureshi",      specialty:"Cardiologist",         address:"Medanta Hospital, Vijay Nagar",                       phone:"0731-474-7185", exp:"26+ yrs exp" },
+  { name:"Dr. Deepesh Kothari",            specialty:"Cardiologist",         address:"V One Hospital, AB Road",                            phone:"0731-358-8888" },
+  { name:"Dr. Shailendra Trivedi",         specialty:"Cardiologist",         address:"Vishesh Jupiter Hospital, Ring Road",                 phone:"0731-471-8111" },
+  { name:"Dr. Vikram Balwani",             specialty:"General Physician",    address:"Choithram Hospital, Manik Bagh Road",                 phone:"0731-236-2491" },
+  { name:"Dr. Sumit Sinha",               specialty:"General Physician",    address:"GSS Clinic, FG-45 Scheme-54, Vijay Nagar",            phone:"062629-24365", timing:"Mon–Sat 11AM–5PM, 6:30–9PM" },
+  { name:"Dr. Moiz Topiwala",             specialty:"General Physician",    address:"Vijay Nagar, Indore",                                exp:"MBBS, DNB" },
+  { name:"Dr. Shailendra Jain",           specialty:"Orthopedic Surgeon",   address:"Dr. Jain's Orthopedic Clinic",                       exp:"18+ yrs exp" },
+  { name:"Dr. Sandeep Singh",             specialty:"Neurologist",          address:"Aastha Clinic, Indore",                              exp:"15+ yrs exp" },
+  { name:"Dr. Partisha Narayan Bhargava", specialty:"Neurologist",          address:"V One Hospital, AB Road",                            phone:"0731-358-8888" },
+  { name:"Dr. S.K. Patidar",              specialty:"Urologist",            address:"Medanta Hospital, Vijay Nagar",                       phone:"0731-474-7185", exp:"20+ yrs exp" },
+  { name:"Dr. Sudhir Bansal",             specialty:"Oncologist",           address:"Bansal Cancer Hospital",                             phone:"0731-234-0477", exp:"25+ yrs exp" },
+  { name:"Dr. Vivek Mehta",               specialty:"Dermatologist",        address:"Skin & Hair Clinic, Indore",                         exp:"12+ yrs exp" },
+  { name:"Dr. Jagrati Yadav",             specialty:"Homeopathy Doctor",    address:"N-100, Singapore Green View, Vijay Nagar, Indore",   phone:"+91 97536 32223", timing:"Mon–Sat 9:00 AM – 7:00 PM", hasPhoto:true },
+];
+
+const SPECIALTY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+  "Cardiologist":      { bg:"rgba(220,53,69,0.12)",  text:"#b02a37", border:"rgba(220,53,69,0.28)" },
+  "General Physician": { bg:"rgba(26,107,74,0.11)",  text:"#1a6b4a", border:"rgba(26,107,74,0.28)" },
+  "Orthopedic Surgeon":{ bg:"rgba(100,80,180,0.11)", text:"#5040a0", border:"rgba(100,80,180,0.28)" },
+  "Neurologist":       { bg:"rgba(13,110,253,0.11)", text:"#0d5dc5", border:"rgba(13,110,253,0.28)" },
+  "Urologist":         { bg:"rgba(32,178,170,0.11)", text:"#108080", border:"rgba(32,178,170,0.28)" },
+  "Oncologist":        { bg:"rgba(220,130,50,0.12)", text:"#b06010", border:"rgba(220,130,50,0.28)" },
+  "Dermatologist":     { bg:"rgba(201,168,76,0.14)", text:"#8a6a00", border:"rgba(201,168,76,0.35)" },
+  "Homeopathy Doctor": { bg:"rgba(76,175,80,0.12)",  text:"#2e7d32", border:"rgba(76,175,80,0.30)" },
+};
+
+const ALL_SPECIALTIES = ["All", ...Array.from(new Set(DOCTORS.map(d => d.specialty)))];
+
+function initials(name: string) {
+  return name.replace("Dr. ", "").split(" ").slice(0,2).map(w => w[0]).join("").toUpperCase();
+}
+
+function DoctorMiniCard({ doc, idx }: { doc: Doctor; idx: number }) {
+  const sc = SPECIALTY_COLORS[doc.specialty] ?? { bg:"rgba(26,107,74,0.11)", text:"#1a6b4a", border:"rgba(26,107,74,0.28)" };
+  const phoneHref = doc.phone ? `tel:${doc.phone.replace(/\s/g,"")}` : undefined;
+
   return (
-    <section id="doctors" style={{ padding:"90px 20px", background:"linear-gradient(180deg,#eee8e0 0%,#f7f3ee 100%)" }}>
-      <div style={{ maxWidth:1100, margin:"0 auto" }}>
-        <div style={{ textAlign:"center", marginBottom:56 }}>
-          <Reveal><div className="gold-bar" /></Reveal>
-          <Reveal delay={100}>
-            <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"clamp(34px,5vw,54px)", fontWeight:700, color:"#0d1f1a", marginBottom:14 }}>Featured Doctor</h2>
-          </Reveal>
-          <Reveal delay={200}>
-            <p style={{ fontSize:16, color:"#5a7a6e", maxWidth:440, margin:"0 auto", lineHeight:1.7 }}>Trusted specialists hand-picked for their expertise and patient care</p>
-          </Reveal>
-        </div>
+    <Reveal delay={Math.min(idx, 5) * 80} direction="up">
+      <div className="card-lift" style={{ background:"#fff", borderRadius:18, overflow:"hidden", border:"1px solid rgba(201,168,76,0.18)", boxShadow:"0 4px 20px rgba(13,31,26,0.07)", display:"flex", flexDirection:"column", height:"100%" }}>
 
-        <div className="doc-card-wrap">
-          <Reveal delay={100} direction="up">
-            <div className="card-lift" style={{ background:"#fff", borderRadius:22, overflow:"hidden", border:"1px solid rgba(201,168,76,0.2)", maxWidth:420, width:"100%", boxShadow:"0 8px 30px rgba(13,31,26,0.08)" }}>
-              {/* Card header */}
-              <div style={{ background:"linear-gradient(135deg,#1a6b4a 0%,#0d1f1a 100%)", padding:"44px 28px 32px", textAlign:"center", position:"relative" }}>
-                <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle at 30% 20%,rgba(201,168,76,0.15) 0%,transparent 60%)", pointerEvents:"none" }} />
+        {/* Card header */}
+        <div style={{ background:"linear-gradient(135deg,#1a6b4a 0%,#0d1f1a 100%)", padding:doc.hasPhoto?"32px 20px 22px":"24px 20px 20px", textAlign:"center", position:"relative" }}>
+          <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle at 30% 20%,rgba(201,168,76,0.13) 0%,transparent 60%)", pointerEvents:"none" }} />
 
-                {/* Photo with spinning ring */}
-                <div style={{ position:"relative", width:130, height:130, margin:"0 auto 20px" }}>
-                  <div className="doc-ring" />
-                  <div style={{ width:130, height:130, borderRadius:"50%", border:"4px solid #c9a84c", overflow:"hidden", boxShadow:"0 8px 24px rgba(0,0,0,0.3)", position:"relative", zIndex:1 }}>
-                    <img src={`${BASE}dr-jagrati-yadav.png`} alt="Dr. Jagrati Yadav" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }} />
-                  </div>
-                </div>
-
-                <h3 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:28, fontWeight:700, color:"#f7f3ee", marginBottom:8, position:"relative", zIndex:1 }}>Dr. Jagrati Yadav</h3>
-                <div style={{ display:"inline-block", background:"rgba(201,168,76,0.18)", border:"1px solid rgba(201,168,76,0.4)", color:"#c9a84c", padding:"4px 16px", borderRadius:100, fontSize:13, fontWeight:600, position:"relative", zIndex:1 }}>
-                  Homeopathy Doctor
-                </div>
-              </div>
-
-              {/* Card body */}
-              <div style={{ padding:"28px 28px 24px" }}>
-                {[
-                  { icon:"📍", label:"Address", content: <span>N-100, Singapore Green View, Vijay Nagar, Indore, MP</span> },
-                  { icon:"📞", label:"Phone",   content: <a href="tel:+919753632223" style={{ color:"#1a6b4a", fontWeight:600, textDecoration:"none", fontSize:15 }}>+91 97536 32223</a> },
-                  { icon:"🕐", label:"Hours",   content: <span>Mon – Sat, 9:00 AM – 7:00 PM</span> },
-                ].map((row, idx) => (
-                  <div key={idx}>
-                    {idx > 0 && <div style={{ height:1, background:"rgba(201,168,76,0.1)", margin:"14px 0" }} />}
-                    <div style={{ display:"flex", gap:14, alignItems:"flex-start" }}>
-                      <div style={{ width:36, height:36, background:"rgba(26,107,74,0.08)", borderRadius:9, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:16 }}>{row.icon}</div>
-                      <div>
-                        <div style={{ fontSize:11, color:"#9ab0a8", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:3 }}>{row.label}</div>
-                        <div style={{ fontSize:14, color:"#0d1f1a", lineHeight:1.5 }}>{row.content}</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                <a href="tel:+919753632223" style={{ textDecoration:"none", display:"block", marginTop:24 }}>
-                  <button className="btn-green" style={{ width:"100%", padding:14, fontSize:15 }}>
-                    📞 Call to Book Appointment
-                  </button>
-                </a>
+          {doc.hasPhoto ? (
+            <div style={{ position:"relative", width:96, height:96, margin:"0 auto 14px" }}>
+              <div className="doc-ring" />
+              <div style={{ width:96, height:96, borderRadius:"50%", border:"3px solid #c9a84c", overflow:"hidden", boxShadow:"0 6px 18px rgba(0,0,0,0.3)", position:"relative", zIndex:1 }}>
+                <img src={`${BASE}dr-jagrati-yadav.png`} alt={doc.name} style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }} />
               </div>
             </div>
-          </Reveal>
+          ) : (
+            <div style={{ width:80, height:80, borderRadius:"50%", border:"3px solid rgba(201,168,76,0.5)", background:"rgba(247,243,238,0.10)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px", position:"relative", zIndex:1 }}>
+              <span style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:26, fontWeight:700, color:"#c9a84c" }}>{initials(doc.name)}</span>
+            </div>
+          )}
+
+          <h3 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:20, fontWeight:700, color:"#f7f3ee", marginBottom:8, lineHeight:1.2, position:"relative", zIndex:1 }}>{doc.name}</h3>
+          <div style={{ display:"inline-block", background:sc.bg, border:`1px solid ${sc.border}`, color:sc.text, padding:"3px 12px", borderRadius:100, fontSize:12, fontWeight:700, position:"relative", zIndex:1 }}>
+            {doc.specialty}
+          </div>
+        </div>
+
+        {/* Card body */}
+        <div style={{ padding:"20px 20px 16px", display:"flex", flexDirection:"column", flex:1 }}>
+          <div style={{ flex:1 }}>
+            {[
+              { icon:"📍", label:"Address", val: doc.address },
+              ...(doc.exp   ? [{ icon:"⭐", label:"Experience", val: doc.exp }]   : []),
+              ...(doc.phone ? [{ icon:"📞", label:"Phone",      val: doc.phone }]  : []),
+              ...(doc.timing? [{ icon:"🕐", label:"Hours",      val: doc.timing }] : []),
+            ].map((row, i) => (
+              <div key={i}>
+                {i > 0 && <div style={{ height:1, background:"rgba(201,168,76,0.1)", margin:"10px 0" }} />}
+                <div style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                  <div style={{ width:30, height:30, background:"rgba(26,107,74,0.08)", borderRadius:7, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:14 }}>{row.icon}</div>
+                  <div>
+                    <div style={{ fontSize:10, color:"#9ab0a8", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:2 }}>{row.label}</div>
+                    <div style={{ fontSize:13, color:"#0d1f1a", lineHeight:1.45 }}>
+                      {row.label === "Phone" && phoneHref
+                        ? <a href={phoneHref} style={{ color:"#1a6b4a", fontWeight:600, textDecoration:"none" }}>{row.val}</a>
+                        : row.val}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <a href={phoneHref ?? "tel:+919753632223"} style={{ textDecoration:"none", display:"block", marginTop:18 }}>
+            <button className="btn-green" style={{ width:"100%", padding:"11px 14px", fontSize:13 }}>
+              📞 Call to Book
+            </button>
+          </a>
         </div>
       </div>
+    </Reveal>
+  );
+}
+
+function DoctorsSection() {
+  const [active, setActive] = useState("All");
+  const filtered = active === "All" ? DOCTORS : DOCTORS.filter(d => d.specialty === active);
+
+  return (
+    <section id="doctors" style={{ padding:"90px 20px", background:"linear-gradient(180deg,#eee8e0 0%,#f7f3ee 100%)" }}>
+      <div style={{ maxWidth:1200, margin:"0 auto" }}>
+
+        {/* Heading */}
+        <div style={{ textAlign:"center", marginBottom:48 }}>
+          <Reveal><div className="gold-bar" /></Reveal>
+          <Reveal delay={100}>
+            <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"clamp(34px,5vw,54px)", fontWeight:700, color:"#0d1f1a", marginBottom:12 }}>Our Doctors</h2>
+          </Reveal>
+          <Reveal delay={200}>
+            <p style={{ fontSize:16, color:"#5a7a6e", maxWidth:480, margin:"0 auto", lineHeight:1.7 }}>
+              15 trusted specialists across Indore — handpicked for expertise and patient care
+            </p>
+          </Reveal>
+        </div>
+
+        {/* Specialty filter */}
+        <Reveal delay={150}>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:10, justifyContent:"center", marginBottom:48 }}>
+            {ALL_SPECIALTIES.map(sp => {
+              const isActive = active === sp;
+              const sc = SPECIALTY_COLORS[sp];
+              return (
+                <button
+                  key={sp}
+                  onClick={() => setActive(sp)}
+                  style={{
+                    padding:"7px 16px", borderRadius:100, fontSize:13, fontWeight:600,
+                    cursor:"pointer", border:"1px solid",
+                    fontFamily:"'DM Sans',sans-serif",
+                    transition:"all 0.22s ease",
+                    background: isActive ? "#1a6b4a" : (sc ? sc.bg : "rgba(26,107,74,0.08)"),
+                    color:      isActive ? "#f7f3ee" : (sc ? sc.text : "#1a6b4a"),
+                    borderColor:isActive ? "#1a6b4a" : (sc ? sc.border : "rgba(26,107,74,0.25)"),
+                    boxShadow:  isActive ? "0 4px 14px rgba(26,107,74,0.3)" : "none",
+                    transform:  isActive ? "translateY(-1px)" : "none",
+                  }}
+                >
+                  {sp === "All" ? `All (${DOCTORS.length})` : sp}
+                </button>
+              );
+            })}
+          </div>
+        </Reveal>
+
+        {/* Doctor grid */}
+        <div className="doctors-grid">
+          {filtered.map((doc, i) => (
+            <DoctorMiniCard key={doc.name} doc={doc} idx={i} />
+          ))}
+        </div>
+
+        {/* Count badge */}
+        <Reveal delay={100}>
+          <p style={{ textAlign:"center", marginTop:40, fontSize:14, color:"#9ab0a8", fontFamily:"'DM Sans',sans-serif" }}>
+            Showing {filtered.length} of {DOCTORS.length} doctors
+          </p>
+        </Reveal>
+      </div>
+
+      <style>{`
+        .doctors-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 22px;
+          align-items: start;
+        }
+        @media (max-width: 900px) {
+          .doctors-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 560px) {
+          .doctors-grid { grid-template-columns: 1fr; }
+        }
+      `}</style>
     </section>
   );
 }
@@ -678,7 +806,7 @@ export default function App() {
       <div className="sep" />
       <HowItWorks />
       <div className="sep" />
-      <DoctorCard />
+      <DoctorsSection />
       <MapSection />
       <AISection />
       <Footer />
