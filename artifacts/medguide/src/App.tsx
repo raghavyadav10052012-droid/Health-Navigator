@@ -738,7 +738,7 @@ function AISection() {
       <div style={{ maxWidth:1100, margin:"0 auto", position:"relative", zIndex:1 }}>
         <div style={{ textAlign:"center", marginBottom:60 }}>
           <Reveal>
-            <div style={{ display:"inline-block", background:"rgba(201,168,76,0.15)", border:"1px solid rgba(201,168,76,0.3)", color:"#c9a84c", padding:"5px 16px", borderRadius:100, fontSize:11, fontWeight:700, letterSpacing:"1.5px", textTransform:"uppercase", marginBottom:20 }}>Coming Soon</div>
+            <div style={{ display:"inline-block", background:"rgba(26,107,74,0.18)", border:"1px solid rgba(26,107,74,0.4)", color:"#4ade80", padding:"5px 16px", borderRadius:100, fontSize:11, fontWeight:700, letterSpacing:"1.5px", textTransform:"uppercase", marginBottom:20 }}>● Now Live</div>
           </Reveal>
           <Reveal delay={100}>
             <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"clamp(34px,5vw,56px)", fontWeight:700, color:"#f7f3ee", marginBottom:16, lineHeight:1.15 }}>AI-Powered Health Tools</h2>
@@ -762,13 +762,6 @@ function AISection() {
           ))}
         </div>
 
-        <Reveal delay={200} direction="none">
-          <div style={{ textAlign:"center" }}>
-            <button className="btn-gold" onClick={() => alert("You'll be notified when AI features launch!")}>
-              Notify Me When It Launches
-            </button>
-          </div>
-        </Reveal>
       </div>
     </section>
   );
