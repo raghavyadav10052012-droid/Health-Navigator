@@ -796,6 +796,207 @@ function Footer() {
   );
 }
 
+/* ── AI Chat Widget ──────────────────────────────────────────────────── */
+type Msg = { role: "user" | "assistant"; content: string };
+
+const CHAT_CSS = `
+  .chat-bubble-user {
+    background: #1a6b4a;
+    color: #f7f3ee;
+    border-radius: 16px 16px 4px 16px;
+    align-self: flex-end;
+  }
+  .chat-bubble-assistant {
+    background: #fff;
+    color: #0d1f1a;
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 16px 16px 16px 4px;
+    align-self: flex-start;
+  }
+  @keyframes chat-open {
+    from { opacity:0; transform: scale(0.85) translateY(20px); }
+    to   { opacity:1; transform: scale(1)    translateY(0); }
+  }
+  .chat-open { animation: chat-open 0.3s ease forwards; }
+  @keyframes typing-dot {
+    0%,80%,100% { transform:scale(0.6); opacity:0.4; }
+    40%         { transform:scale(1);   opacity:1; }
+  }
+  .typing-dot {
+    width:7px; height:7px; background:#1a6b4a; border-radius:50%;
+    display:inline-block; margin:0 2px;
+    animation: typing-dot 1.2s ease infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay:0.2s; }
+  .typing-dot:nth-child(3) { animation-delay:0.4s; }
+  .chat-send-btn {
+    background: #1a6b4a; color: #f7f3ee;
+    border: none; border-radius: 10px;
+    width: 40px; height: 40px;
+    cursor: pointer; font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .chat-send-btn:hover:not(:disabled) { background:#145538; transform:scale(1.07); }
+  .chat-send-btn:disabled { opacity:0.5; cursor:default; }
+  .chat-input {
+    flex: 1; border: 1px solid rgba(26,107,74,0.25);
+    border-radius: 10px; padding: 10px 14px;
+    font-size: 14px; font-family: 'DM Sans', sans-serif;
+    outline: none; resize: none;
+    background: #fff; color: #0d1f1a;
+    transition: border-color 0.2s;
+    max-height: 100px; overflow-y: auto;
+  }
+  .chat-input:focus { border-color: #1a6b4a; }
+  .chat-input::placeholder { color: #9ab0a8; }
+  @keyframes fab-pulse {
+    0%,100% { box-shadow: 0 0 0 0   rgba(26,107,74,0.5); }
+    50%      { box-shadow: 0 0 0 12px rgba(26,107,74,0); }
+  }
+  .chat-fab { animation: fab-pulse 2.5s ease-in-out infinite; }
+`;
+
+function ChatWidget() {
+  const [open, setOpen]   = useState(false);
+  const [msgs, setMsgs]   = useState<Msg[]>([
+    { role: "assistant", content: "👋 Hi! I'm MedGuide AI. Tell me your symptoms and I'll help you find the right doctor in Indore." },
+  ]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [msgs, loading]);
+
+  async function send() {
+    const text = input.trim();
+    if (!text || loading) return;
+
+    const userMsg: Msg = { role: "user", content: text };
+    const history = [...msgs, userMsg];
+    setMsgs(history);
+    setInput("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: history }),
+      });
+      const data = await res.json() as { reply?: string; error?: string };
+      setMsgs(prev => [...prev, { role: "assistant", content: data.reply ?? data.error ?? "Sorry, something went wrong." }]);
+    } catch {
+      setMsgs(prev => [...prev, { role: "assistant", content: "Connection error. Please try again." }]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function onKey(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+  }
+
+  return (
+    <>
+      <style>{CHAT_CSS}</style>
+
+      {/* FAB */}
+      <button
+        className="chat-fab"
+        onClick={() => setOpen(o => !o)}
+        aria-label="Open AI health assistant"
+        style={{
+          position: "fixed", bottom: 28, right: 28, zIndex: 2000,
+          width: 60, height: 60, borderRadius: "50%",
+          background: "linear-gradient(135deg,#1a6b4a,#0d3d28)",
+          border: "3px solid rgba(201,168,76,0.6)",
+          cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 26, color: "#f7f3ee",
+          transition: "transform 0.2s",
+          transform: open ? "scale(0.9) rotate(10deg)" : "scale(1)",
+        }}
+      >
+        {open ? "✕" : "🩺"}
+      </button>
+
+      {/* Chat panel */}
+      {open && (
+        <div
+          className="chat-open"
+          style={{
+            position: "fixed", bottom: 100, right: 28, zIndex: 1999,
+            width: "min(380px, calc(100vw - 40px))",
+            background: "#f7f3ee",
+            borderRadius: 20,
+            boxShadow: "0 24px 60px rgba(13,31,26,0.22), 0 4px 16px rgba(13,31,26,0.12)",
+            border: "1px solid rgba(201,168,76,0.25)",
+            display: "flex", flexDirection: "column",
+            overflow: "hidden",
+            maxHeight: "min(520px, calc(100svh - 160px))",
+          }}
+        >
+          {/* Header */}
+          <div style={{ background: "linear-gradient(135deg,#1a6b4a,#0d3d28)", padding: "16px 20px", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+            <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(201,168,76,0.2)", border: "2px solid #c9a84c", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🩺</div>
+            <div>
+              <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 18, fontWeight: 700, color: "#f7f3ee", lineHeight: 1.2 }}>MedGuide AI</div>
+              <div style={{ fontSize: 12, color: "rgba(247,243,238,0.65)", fontFamily: "'DM Sans',sans-serif" }}>Indore Doctor Finder</div>
+            </div>
+            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80" }} />
+              <span style={{ fontSize: 11, color: "rgba(247,243,238,0.7)", fontFamily: "'DM Sans',sans-serif" }}>Online</span>
+            </div>
+          </div>
+
+          {/* Messages */}
+          <div style={{ flex: 1, overflowY: "auto", padding: "16px 16px 8px", display: "flex", flexDirection: "column", gap: 10 }}>
+            {msgs.map((m, i) => (
+              <div
+                key={i}
+                className={m.role === "user" ? "chat-bubble-user" : "chat-bubble-assistant"}
+                style={{ padding: "10px 14px", fontSize: 14, lineHeight: 1.55, maxWidth: "85%", fontFamily: "'DM Sans',sans-serif", whiteSpace: "pre-wrap" }}
+              >
+                {m.content}
+              </div>
+            ))}
+            {loading && (
+              <div className="chat-bubble-assistant" style={{ padding: "10px 14px", display: "inline-flex", alignItems: "center", gap: 2 }}>
+                <span className="typing-dot" />
+                <span className="typing-dot" />
+                <span className="typing-dot" />
+              </div>
+            )}
+            <div ref={bottomRef} />
+          </div>
+
+          {/* Divider */}
+          <div style={{ height: 1, background: "rgba(201,168,76,0.15)", flexShrink: 0 }} />
+
+          {/* Input row */}
+          <div style={{ padding: "12px 14px", display: "flex", gap: 10, alignItems: "flex-end", background: "#f7f3ee", flexShrink: 0 }}>
+            <textarea
+              className="chat-input"
+              rows={1}
+              placeholder="Describe your symptoms..."
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={onKey}
+              disabled={loading}
+            />
+            <button className="chat-send-btn" onClick={send} disabled={loading || !input.trim()} aria-label="Send">
+              ➤
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 /* ── App ─────────────────────────────────────────────────────────────── */
 export default function App() {
   return (
@@ -810,6 +1011,7 @@ export default function App() {
       <MapSection />
       <AISection />
       <Footer />
+      <ChatWidget />
     </>
   );
 }
