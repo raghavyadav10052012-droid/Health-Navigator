@@ -54,6 +54,21 @@ function Reveal({
   );
 }
 
+/* ── Section Banner ──────────────────────────────────────────────────── */
+function SectionBanner({ icon, label, accent }: { icon: string; label: string; accent: string }) {
+  return (
+    <div style={{
+      width: "100%",
+      background: accent,
+      padding: "10px 20px",
+      display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+    }}>
+      <span style={{ fontSize: 18 }}>{icon}</span>
+      <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 700, letterSpacing: "2px", textTransform: "uppercase", color: "#f7f3ee" }}>{label}</span>
+    </div>
+  );
+}
+
 /* ── Global styles ───────────────────────────────────────────────────── */
 const GLOBAL_CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
@@ -318,11 +333,8 @@ function Navbar() {
       transition: "all 0.3s ease",
     }}>
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 20px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 68 }}>
-        <a href="#hero" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 36, height: 36, background: "#1a6b4a", borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ color: "#f7f3ee", fontSize: 17 }}>✚</span>
-          </div>
-          <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 26, fontWeight: 700, color: "#0d1f1a" }}>MedGuide</span>
+        <a href="#hero" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
+          <img src={`${BASE}logo.png`} alt="MedGuide" style={{ height: 52, width: "auto", objectFit: "contain" }} />
         </a>
 
         {/* Desktop links */}
@@ -467,7 +479,9 @@ function HowItWorks() {
   ];
 
   return (
-    <section id="how-it-works" style={{ padding:"90px 20px", background:"#f7f3ee" }}>
+    <section id="how-it-works" style={{ background:"#f7f3ee" }}>
+      <SectionBanner icon="ℹ️" label="How It Works — Information" accent="#1a6b4a" />
+      <div style={{ padding:"80px 20px 90px" }}>
       <div style={{ maxWidth:1100, margin:"0 auto" }}>
         <div style={{ textAlign:"center", marginBottom:56 }}>
           <Reveal><div className="gold-bar" /></Reveal>
@@ -492,6 +506,7 @@ function HowItWorks() {
             </Reveal>
           ))}
         </div>
+      </div>
       </div>
     </section>
   );
@@ -616,7 +631,9 @@ function DoctorsSection() {
   const filtered = active === "All" ? DOCTORS : DOCTORS.filter(d => d.specialty === active);
 
   return (
-    <section id="doctors" style={{ padding:"90px 20px", background:"linear-gradient(180deg,#eee8e0 0%,#f7f3ee 100%)" }}>
+    <section id="doctors" style={{ background:"linear-gradient(180deg,#eee8e0 0%,#f7f3ee 100%)" }}>
+      <SectionBanner icon="👨‍⚕️" label="Our Doctors — Find a Specialist" accent="#0d3d28" />
+      <div style={{ padding:"80px 20px 90px" }}>
       <div style={{ maxWidth:1200, margin:"0 auto" }}>
 
         {/* Heading */}
@@ -690,6 +707,7 @@ function DoctorsSection() {
           .doctors-grid { grid-template-columns: 1fr; }
         }
       `}</style>
+      </div>
     </section>
   );
 }
@@ -697,7 +715,9 @@ function DoctorsSection() {
 /* ── Map ─────────────────────────────────────────────────────────────── */
 function MapSection() {
   return (
-    <section id="location" style={{ padding:"80px 20px", background:"#f7f3ee" }}>
+    <section id="location" style={{ background:"#f7f3ee" }}>
+      <SectionBanner icon="📍" label="Location — Find the Clinic" accent="#145538" />
+      <div style={{ padding:"72px 20px 80px" }}>
       <div style={{ maxWidth:1100, margin:"0 auto" }}>
         <div style={{ textAlign:"center", marginBottom:44 }}>
           <Reveal><div className="gold-bar" /></Reveal>
@@ -719,6 +739,7 @@ function MapSection() {
           </div>
         </Reveal>
       </div>
+      </div>
     </section>
   );
 }
@@ -732,7 +753,9 @@ function AISection() {
   ];
 
   return (
-    <section id="ai" style={{ padding:"96px 20px", background:"linear-gradient(135deg,#0d1f1a 0%,#1a6b4a 100%)", position:"relative", overflow:"hidden" }}>
+    <section id="ai" style={{ background:"linear-gradient(135deg,#0d1f1a 0%,#1a6b4a 100%)", position:"relative", overflow:"hidden" }}>
+      <SectionBanner icon="🤖" label="AI Assistant — Health Tools" accent="rgba(255,255,255,0.08)" />
+      <div style={{ padding:"80px 20px 96px" }}>
       <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(ellipse at 70% 30%,rgba(201,168,76,0.09) 0%,transparent 60%),radial-gradient(ellipse at 20% 80%,rgba(247,243,238,0.04) 0%,transparent 50%)", pointerEvents:"none" }} />
 
       <div style={{ maxWidth:1100, margin:"0 auto", position:"relative", zIndex:1 }}>
@@ -763,6 +786,7 @@ function AISection() {
         </div>
 
       </div>
+      </div>
     </section>
   );
 }
@@ -772,11 +796,8 @@ function Footer() {
   return (
     <footer style={{ background:"#0d1f1a", padding:"40px 20px" }}>
       <div className="footer-inner" style={{ maxWidth:1100, margin:"0 auto" }}>
-        <a href="#hero" style={{ textDecoration:"none", display:"flex", alignItems:"center", gap:10 }}>
-          <div style={{ width:32, height:32, background:"#1a6b4a", borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <span style={{ color:"#f7f3ee", fontSize:14 }}>✚</span>
-          </div>
-          <span style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:20, fontWeight:700, color:"#f7f3ee" }}>MedGuide</span>
+        <a href="#hero" style={{ textDecoration:"none", display:"flex", alignItems:"center" }}>
+          <img src={`${BASE}logo.png`} alt="MedGuide" style={{ height:44, width:"auto", objectFit:"contain", filter:"brightness(0) invert(1)" }} />
         </a>
         <p style={{ fontSize:14, color:"rgba(247,243,238,0.55)", fontFamily:"'DM Sans',sans-serif" }}>
           © 2026 MedGuide. All rights reserved. Indore's trusted healthcare navigator.
@@ -1001,7 +1022,9 @@ export default function App() {
       <HowItWorks />
       <div className="sep" />
       <DoctorsSection />
+      <div className="sep" />
       <MapSection />
+      <div className="sep" />
       <AISection />
       <Footer />
       <ChatWidget />
