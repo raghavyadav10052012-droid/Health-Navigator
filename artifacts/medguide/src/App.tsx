@@ -2,15 +2,15 @@ import { useState, useEffect, useRef, ReactNode } from "react";
 
 const BASE = import.meta.env.BASE_URL;
 
-/* ── Scroll-reveal hook ──────────────────────────────────────────────── */
-function useReveal(threshold = 0.15) {
+/* ── Scroll-reveal ───────────────────────────────────────────────────── */
+function useReveal(threshold = 0.12) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
       { threshold }
     );
     obs.observe(el);
@@ -18,892 +18,873 @@ function useReveal(threshold = 0.15) {
   }, [threshold]);
   return { ref, visible };
 }
-
-function Reveal({
-  children,
-  delay = 0,
-  direction = "up",
-  className = "",
-}: {
-  children: ReactNode;
-  delay?: number;
-  direction?: "up" | "left" | "right" | "none";
-  className?: string;
+function Reveal({ children, delay = 0, direction = "up", className = "" }: {
+  children: ReactNode; delay?: number; direction?: "up"|"left"|"right"|"none"; className?: string;
 }) {
   const { ref, visible } = useReveal();
-  const transform = {
-    up: "translateY(40px)",
-    left: "translateX(-40px)",
-    right: "translateX(40px)",
-    none: "none",
-  }[direction];
-
+  const t = { up:"translateY(32px)", left:"translateX(-32px)", right:"translateX(32px)", none:"none" }[direction];
   return (
-    <div
-      ref={ref}
-      className={className}
-      style={{
-        opacity: visible ? 1 : 0,
-        transform: visible ? "none" : transform,
-        transition: `opacity 0.75s ease ${delay}ms, transform 0.75s ease ${delay}ms`,
-        willChange: "opacity, transform",
-      }}
-    >
-      {children}
-    </div>
+    <div ref={ref} className={className} style={{
+      opacity: visible ? 1 : 0,
+      transform: visible ? "none" : t,
+      transition: `opacity 0.6s ease ${delay}ms, transform 0.6s ease ${delay}ms`,
+      willChange: "opacity, transform",
+    }}>{children}</div>
   );
 }
 
-/* ── Section Banner ──────────────────────────────────────────────────── */
-function SectionBanner({ icon, label, accent }: { icon: string; label: string; accent: string }) {
-  return (
-    <div style={{
-      width: "100%",
-      background: accent,
-      padding: "10px 20px",
-      display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-    }}>
-      <span style={{ fontSize: 18 }}>{icon}</span>
-      <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 700, letterSpacing: "2px", textTransform: "uppercase", color: "#f7f3ee" }}>{label}</span>
-    </div>
-  );
-}
+/* ── Design tokens ───────────────────────────────────────────────────── */
+const C = {
+  primary:   "#0B6E4F",
+  primary2:  "#0D8860",
+  light:     "#E8F5F0",
+  lighter:   "#F2FAF6",
+  white:     "#FFFFFF",
+  bg:        "#F8FAFB",
+  text:      "#111827",
+  muted:     "#6B7280",
+  border:    "#E5E7EB",
+  danger:    "#DC2626",
+  warning:   "#D97706",
+  blue:      "#2563EB",
+  purple:    "#7C3AED",
+  teal:      "#0D9488",
+  orange:    "#EA580C",
+};
 
-/* ── Global styles ───────────────────────────────────────────────────── */
+/* ── Global CSS ──────────────────────────────────────────────────────── */
 const GLOBAL_CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
-
   body {
-    font-family: 'DM Sans', sans-serif;
-    background: #f7f3ee;
-    color: #0d1f1a;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: ${C.bg};
+    color: ${C.text};
     -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
   }
 
-  h1,h2,h3 { font-family: 'Cormorant Garamond', Georgia, serif; }
-
-  /* Animated pulse ring on CTA */
-  @keyframes pulse-ring {
-    0%   { transform: scale(1);   opacity: 0.6; }
-    70%  { transform: scale(1.25); opacity: 0;   }
-    100% { transform: scale(1.25); opacity: 0;   }
-  }
-  .pulse-btn { position: relative; display: inline-block; }
-  .pulse-btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 8px;
-    background: #c9a84c;
-    animation: pulse-ring 2.2s ease-out infinite;
-    pointer-events: none;
-    z-index: 0;
-  }
-  .pulse-btn > * { position: relative; z-index: 1; }
-
-  /* Floating blobs in hero */
-  @keyframes float1 {
-    0%,100% { transform: translateY(0) scale(1); }
-    50%      { transform: translateY(-24px) scale(1.04); }
-  }
-  @keyframes float2 {
-    0%,100% { transform: translateY(0) scale(1); }
-    50%      { transform: translateY(18px) scale(0.96); }
-  }
-  .blob1 { animation: float1 7s ease-in-out infinite; }
-  .blob2 { animation: float2 9s ease-in-out infinite; }
-
-  /* Shimmer on gold bar */
-  @keyframes shimmer {
-    0%  { background-position: -200% center; }
-    100%{ background-position:  200% center; }
-  }
-  .gold-bar {
-    display: inline-block;
-    width: 52px; height: 3px;
-    border-radius: 2px;
-    background: linear-gradient(90deg, #c9a84c 0%, #f0d080 50%, #c9a84c 100%);
-    background-size: 200% auto;
-    animation: shimmer 2.5s linear infinite;
-    margin-bottom: 20px;
-  }
-
-  /* Hover lift for cards */
-  .card-lift {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    cursor: default;
-  }
-  .card-lift:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 24px 48px rgba(26,107,74,0.15) !important;
-  }
-
-  /* Stagger children */
-  .stagger > *:nth-child(1) { transition-delay: 0ms  !important; }
-  .stagger > *:nth-child(2) { transition-delay: 120ms !important; }
-  .stagger > *:nth-child(3) { transition-delay: 240ms !important; }
-  .stagger > *:nth-child(4) { transition-delay: 360ms !important; }
-
-  /* Nav link underline */
+  /* Nav links */
   .nav-link {
-    position: relative; text-decoration: none;
-    color: #0d1f1a; font-size: 15px; font-weight: 500;
-    transition: color 0.2s;
+    text-decoration: none; color: #374151; font-size: 14px; font-weight: 500;
+    padding: 6px 2px; border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
   }
-  .nav-link::after {
-    content: ''; position: absolute; bottom: -3px; left: 0;
-    width: 0; height: 2px; background: #1a6b4a;
-    transition: width 0.3s ease;
-  }
-  .nav-link:hover { color: #1a6b4a; }
-  .nav-link:hover::after { width: 100%; }
+  .nav-link:hover { color: ${C.primary}; border-color: ${C.primary}; }
 
-  /* Button transitions */
-  .btn-green {
-    background: #1a6b4a; color: #f7f3ee;
-    border: none; border-radius: 8px;
-    padding: 13px 28px; font-size: 15px; font-weight: 700;
-    cursor: pointer; font-family: 'DM Sans', sans-serif;
-    transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s;
+  /* Buttons */
+  .btn-primary {
+    background: ${C.primary}; color: #fff;
+    border: none; border-radius: 10px;
+    padding: 12px 24px; font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    transition: background 0.2s, transform 0.18s, box-shadow 0.18s;
+    display: inline-flex; align-items: center; gap: 6px;
   }
-  .btn-green:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 24px rgba(26,107,74,0.35);
-    background: #165c3e;
-  }
-  .btn-gold {
-    background: #c9a84c; color: #0d1f1a;
-    border: none; border-radius: 8px;
-    padding: 13px 32px; font-size: 15px; font-weight: 700;
-    cursor: pointer; font-family: 'DM Sans', sans-serif;
-    transition: transform 0.22s ease, box-shadow 0.22s ease;
-  }
-  .btn-gold:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 24px rgba(201,168,76,0.45);
-  }
-  .btn-outline-light {
-    background: transparent; color: #f7f3ee;
-    border: 2px solid rgba(247,243,238,0.4); border-radius: 8px;
-    padding: 11px 28px; font-size: 15px; font-weight: 600;
-    cursor: pointer; font-family: 'DM Sans', sans-serif;
-    transition: all 0.22s ease;
-  }
-  .btn-outline-light:hover {
-    border-color: rgba(247,243,238,0.85);
-    background: rgba(247,243,238,0.09);
+  .btn-primary:hover {
+    background: ${C.primary2};
     transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(11,110,79,0.28);
+  }
+  .btn-outline {
+    background: transparent; color: ${C.primary};
+    border: 1.5px solid ${C.primary}; border-radius: 10px;
+    padding: 11px 24px; font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-outline:hover {
+    background: ${C.light}; transform: translateY(-2px);
+  }
+  .btn-outline-white {
+    background: transparent; color: #fff;
+    border: 1.5px solid rgba(255,255,255,0.55); border-radius: 10px;
+    padding: 11px 24px; font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-outline-white:hover { background: rgba(255,255,255,0.12); border-color: #fff; }
+  .btn-sm {
+    padding: 8px 16px !important; font-size: 13px !important;
   }
 
-  /* Step icon bounce */
-  @keyframes bounce-in {
-    0%   { transform: scale(0.6); opacity: 0; }
-    60%  { transform: scale(1.1); opacity: 1; }
-    100% { transform: scale(1); }
+  /* Cards */
+  .card {
+    background: #fff; border-radius: 14px;
+    border: 1px solid ${C.border};
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
   }
-  .step-icon-wrap { animation: none; }
-  .step-icon-wrap.animate { animation: bounce-in 0.5s ease forwards; }
-
-  /* Section separator */
-  .sep {
-    height: 1px;
-    background: linear-gradient(to right, transparent, rgba(201,168,76,0.35), transparent);
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(11,110,79,0.10);
   }
 
-  /* ── RESPONSIVE ── */
+  /* Section header */
+  .section-label {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: ${C.light}; color: ${C.primary};
+    padding: 5px 14px; border-radius: 100px;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+    text-transform: uppercase; margin-bottom: 14px;
+  }
+
+  /* Section divider */
+  .divider {
+    height: 1px; background: ${C.border}; margin: 0;
+  }
+
+  /* Responsive nav */
   @media (max-width: 768px) {
-    .desktop-links { display: none !important; }
-    .hamburger     { display: flex !important; }
+    .desktop-nav { display: none !important; }
+    .hamburger   { display: flex !important; }
   }
   @media (min-width: 769px) {
     .hamburger   { display: none !important; }
     .mobile-menu { display: none !important; }
   }
 
-  /* Hero stat grid */
-  .stat-grid {
+  /* Grids */
+  .doctors-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
   }
-  @media (max-width: 600px) {
-    .stat-grid { grid-template-columns: repeat(2, 1fr); }
-  }
+  @media (max-width: 960px) { .doctors-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .doctors-grid { grid-template-columns: 1fr; } }
 
-  /* How It Works grid */
   .steps-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 24px;
+    align-items: stretch;
   }
-  @media (max-width: 768px) {
-    .steps-grid { grid-template-columns: 1fr; }
-  }
+  @media (max-width: 768px) { .steps-grid { grid-template-columns: 1fr; } }
 
-  /* AI cards grid */
   .ai-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
   }
-  @media (max-width: 768px) {
-    .ai-grid { grid-template-columns: 1fr; }
+  @media (max-width: 768px) { .ai-grid { grid-template-columns: 1fr; } }
+
+  .footer-cols {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1.5fr;
+    gap: 40px;
+  }
+  @media (max-width: 768px) { .footer-cols { grid-template-columns: 1fr 1fr; gap: 32px; } }
+  @media (max-width: 480px) { .footer-cols { grid-template-columns: 1fr; } }
+
+  .stat-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  @media (max-width: 600px) { .stat-strip { grid-template-columns: repeat(2, 1fr); } }
+
+  /* Hero floating shapes */
+  @keyframes float-a {
+    0%,100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(-18px) rotate(4deg); }
+  }
+  @keyframes float-b {
+    0%,100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(14px) rotate(-3deg); }
+  }
+  .shape-a { animation: float-a 8s ease-in-out infinite; }
+  .shape-b { animation: float-b 10s ease-in-out infinite; }
+
+  /* Pill filter buttons */
+  .filter-pill {
+    padding: 7px 16px; border-radius: 100px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer; border: 1.5px solid ${C.border};
+    background: #fff; color: ${C.muted};
+    transition: all 0.18s ease;
+    font-family: inherit;
+  }
+  .filter-pill:hover { border-color: ${C.primary}; color: ${C.primary}; }
+  .filter-pill.active {
+    background: ${C.primary}; color: #fff; border-color: ${C.primary};
+    box-shadow: 0 4px 12px rgba(11,110,79,0.22);
   }
 
-  /* Footer flex */
-  .footer-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-  @media (max-width: 640px) {
-    .footer-inner {
-      flex-direction: column;
-      text-align: center;
-      align-items: center;
-    }
-  }
+  /* Rating stars */
+  .stars { color: #F59E0B; font-size: 12px; letter-spacing: 1px; }
 
-  /* Hero CTA buttons */
-  .hero-ctas {
-    display: flex;
-    gap: 14px;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  /* Doctor card centered */
-  .doc-card-wrap {
-    display: flex;
-    justify-content: center;
-  }
-
-  /* Spinning border on doc photo */
-  @keyframes spin-slow {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-  }
-  .doc-ring {
-    position: absolute; inset: -6px;
-    border-radius: 50%;
-    border: 2px dashed rgba(201,168,76,0.5);
-    animation: spin-slow 12s linear infinite;
-  }
-
-  /* Number counter pop */
-  @keyframes pop {
-    0%  { transform: scale(0.5); opacity: 0; }
-    70% { transform: scale(1.1); }
-    100%{ transform: scale(1);   opacity: 1; }
-  }
-  .stat-num { animation: pop 0.6s ease forwards; opacity: 0; }
-  .stat-num.go { animation: pop 0.6s ease forwards; }
-`;
-
-/* ── Navbar ──────────────────────────────────────────────────────────── */
-function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", fn);
-    return () => window.removeEventListener("scroll", fn);
-  }, []);
-
-  const links = [
-    { label: "Home",        href: "#hero" },
-    { label: "How It Works",href: "#how-it-works" },
-    { label: "Our Doctors", href: "#doctors" },
-    { label: "Location",    href: "#location" },
-    { label: "AI Features", href: "#ai" },
-  ];
-
-  return (
-    <nav style={{
-      position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000,
-      background: scrolled ? "rgba(247,243,238,0.97)" : "#f7f3ee",
-      boxShadow: scrolled ? "0 2px 20px rgba(13,31,26,0.10)" : "none",
-      borderBottom: scrolled ? "1px solid rgba(201,168,76,0.2)" : "1px solid transparent",
-      transition: "all 0.3s ease",
-    }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 74 }}>
-        <a href="#hero" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ background: "#fff", borderRadius: 12, padding: "4px 10px 4px 6px", boxShadow: "0 2px 10px rgba(13,31,26,0.10)", display: "flex", alignItems: "center", gap: 8 }}>
-            <img src={`${BASE}logo.png`} alt="MedGuide" style={{ height: 44, width: "auto", objectFit: "contain" }} />
-          </div>
-        </a>
-
-        {/* Desktop links */}
-        <div className="desktop-links" style={{ display: "flex", alignItems: "center", gap: 28 }}>
-          {links.map(l => <a key={l.href} href={l.href} className="nav-link">{l.label}</a>)}
-        </div>
-
-        {/* Hamburger */}
-        <button
-          className="hamburger"
-          onClick={() => setOpen(o => !o)}
-          style={{ background: "none", border: "none", cursor: "pointer", fontSize: 24, color: "#0d1f1a", display: "none", alignItems: "center", padding: 6 }}
-        >
-          {open ? "✕" : "☰"}
-        </button>
-      </div>
-
-      {/* Mobile menu */}
-      <div
-        className="mobile-menu"
-        style={{
-          background: "#f7f3ee",
-          padding: open ? "12px 20px 20px" : "0 20px",
-          maxHeight: open ? 400 : 0,
-          overflow: "hidden",
-          transition: "max-height 0.4s ease, padding 0.4s ease",
-          borderTop: "1px solid rgba(201,168,76,0.2)",
-        }}
-      >
-        {links.map(l => (
-          <a key={l.href} href={l.href} onClick={() => setOpen(false)} style={{
-            display: "block", padding: "11px 0",
-            borderBottom: "1px solid rgba(0,0,0,0.06)",
-            color: "#0d1f1a", textDecoration: "none",
-            fontSize: 15, fontWeight: 500,
-          }}>{l.label}</a>
-        ))}
-      </div>
-    </nav>
-  );
-}
-
-/* ── Hero ────────────────────────────────────────────────────────────── */
-function StatNum({ value, delay }: { value: string; delay: number }) {
-  const { ref, visible } = useReveal(0.1);
-  return (
-    <div ref={ref} style={{
-      fontFamily: "'Cormorant Garamond',serif",
-      fontSize: "clamp(28px,6vw,40px)", fontWeight: 700, color: "#c9a84c",
-      opacity: visible ? 1 : 0,
-      transform: visible ? "scale(1)" : "scale(0.5)",
-      transition: `opacity 0.5s ease ${delay}ms, transform 0.5s ease ${delay}ms`,
-      lineHeight: 1, marginBottom: 6,
-    }}>{value}</div>
-  );
-}
-
-function Hero() {
-  const stats = [
-    { value: "50+",  label: "Doctors" },
-    { value: "98%",  label: "Satisfaction" },
-    { value: "5 min",label: "Match" },
-    { value: "24/7", label: "AI Support" },
-  ];
-
-  return (
-    <section id="hero" style={{
-      minHeight: "100svh",
-      background: "linear-gradient(145deg,#0d1f1a 0%,#1a6b4a 55%,#1f7d55 100%)",
-      display: "flex", flexDirection: "column",
-      alignItems: "center", justifyContent: "center",
-      padding: "100px 20px 72px",
-      textAlign: "center", position: "relative", overflow: "hidden",
-    }}>
-      {/* Floating blobs */}
-      <div className="blob1" style={{ position:"absolute", top:"-80px", right:"-80px", width:"420px", height:"420px", borderRadius:"50%", background:"rgba(201,168,76,0.07)", pointerEvents:"none" }} />
-      <div className="blob2" style={{ position:"absolute", bottom:"-60px", left:"-60px", width:"360px", height:"360px", borderRadius:"50%", background:"rgba(247,243,238,0.05)", pointerEvents:"none" }} />
-
-      <div style={{ position:"relative", zIndex:1, maxWidth:780, width:"100%" }}>
-
-        <Reveal delay={0}>
-          <div style={{ display:"inline-block", background:"rgba(201,168,76,0.14)", border:"1px solid rgba(201,168,76,0.35)", color:"#c9a84c", padding:"5px 18px", borderRadius:100, fontSize:12, fontWeight:700, letterSpacing:"1.2px", textTransform:"uppercase", marginBottom:26 }}>
-            Indore's Premier Healthcare Navigator
-          </div>
-        </Reveal>
-
-        <Reveal delay={120}>
-          <h1 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"clamp(38px,8vw,76px)", fontWeight:700, color:"#f7f3ee", lineHeight:1.08, margin:"0 0 22px", letterSpacing:"-1px" }}>
-            Find the Right Doctor,{" "}
-            <em style={{ color:"#c9a84c", fontStyle:"italic" }}>Not Just Any Doctor</em>
-          </h1>
-        </Reveal>
-
-        <Reveal delay={240}>
-          <p style={{ fontSize:"clamp(15px,2vw,17px)", color:"rgba(247,243,238,0.78)", lineHeight:1.75, margin:"0 auto 36px", maxWidth:580 }}>
-            MedGuide connects Indore residents with the right specialist in minutes.
-            No guesswork, no referral delays — just expert care matched to your unique health needs.
-          </p>
-        </Reveal>
-
-        <Reveal delay={360}>
-          <div className="hero-ctas" style={{ marginBottom:60 }}>
-            <a href="#doctors" style={{ textDecoration:"none" }}>
-              <div className="pulse-btn">
-                <button className="btn-gold">Find My Doctor</button>
-              </div>
-            </a>
-            <a href="#how-it-works" style={{ textDecoration:"none" }}>
-              <button className="btn-outline-light">How It Works</button>
-            </a>
-          </div>
-        </Reveal>
-
-        {/* Stats */}
-        <div className="stat-grid stagger">
-          {stats.map((s, i) => (
-            <Reveal key={i} delay={480 + i * 80} direction="up">
-              <div style={{ background:"rgba(247,243,238,0.07)", border:"1px solid rgba(247,243,238,0.12)", borderRadius:14, padding:"20px 12px", backdropFilter:"blur(8px)" }}>
-                <StatNum value={s.value} delay={500 + i * 80} />
-                <div style={{ fontSize:12, color:"rgba(247,243,238,0.62)", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.6px" }}>{s.label}</div>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── How It Works ────────────────────────────────────────────────────── */
-function HowItWorks() {
-  const steps = [
-    { num:"01", icon:"📋", title:"Describe Symptoms", desc:"Tell us what you're experiencing in plain language. Our intake form captures the details that matter most to find your match." },
-    { num:"02", icon:"🎯", title:"Get Matched",       desc:"Our engine analyses your symptoms and connects you with the right specialist in Indore within minutes — no wait." },
-    { num:"03", icon:"📅", title:"Book & Visit",      desc:"Instantly confirm your appointment. Walk in confidently, knowing you're in exactly the right hands." },
-  ];
-
-  return (
-    <section id="how-it-works" style={{ background:"#f7f3ee" }}>
-      <SectionBanner icon="ℹ️" label="How It Works — Information" accent="#1a6b4a" />
-      <div style={{ padding:"80px 20px 90px" }}>
-      <div style={{ maxWidth:1100, margin:"0 auto" }}>
-        <div style={{ textAlign:"center", marginBottom:56 }}>
-          <Reveal><div className="gold-bar" /></Reveal>
-          <Reveal delay={100}>
-            <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"clamp(34px,5vw,54px)", fontWeight:700, color:"#0d1f1a", marginBottom:14, lineHeight:1.15 }}>How It Works</h2>
-          </Reveal>
-          <Reveal delay={200}>
-            <p style={{ fontSize:16, color:"#5a7a6e", maxWidth:440, margin:"0 auto", lineHeight:1.7 }}>Three simple steps to expert care in Indore</p>
-          </Reveal>
-        </div>
-
-        <div className="steps-grid">
-          {steps.map((s, i) => (
-            <Reveal key={i} delay={i * 150} direction={i === 0 ? "left" : i === 2 ? "right" : "up"}>
-              <div className="card-lift" style={{ background:"#fff", borderRadius:18, padding:"32px 26px 28px", border:"1px solid rgba(201,168,76,0.15)", position:"relative", overflow:"hidden", height:"100%" }}>
-                <div style={{ position:"absolute", top:14, right:18, fontFamily:"'Cormorant Garamond',serif", fontSize:64, fontWeight:700, color:"rgba(26,107,74,0.07)", lineHeight:1, pointerEvents:"none" }}>{s.num}</div>
-                <div style={{ width:54, height:54, background:"rgba(26,107,74,0.09)", borderRadius:14, display:"flex", alignItems:"center", justifyContent:"center", fontSize:26, marginBottom:18 }}>{s.icon}</div>
-                <h3 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:26, fontWeight:700, color:"#0d1f1a", marginBottom:10 }}>{s.title}</h3>
-                <p style={{ fontSize:15, color:"#5a7a6e", lineHeight:1.7, margin:0 }}>{s.desc}</p>
-                <div style={{ position:"absolute", bottom:0, left:0, right:0, height:3, background:"linear-gradient(to right,#1a6b4a,#c9a84c)", opacity:0.6 }} />
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── Doctors Section ─────────────────────────────────────────────────── */
-type Doctor = {
-  name: string;
-  specialty: string;
-  address: string;
-  phone?: string;
-  timing?: string;
-  exp?: string;
-  hasPhoto?: boolean;
-};
-
-const DOCTORS: Doctor[] = [
-  { name:"Dr. R.N. Yadav",                specialty:"Cardiologist",         address:"Heart Care Center, Indore",                          exp:"20+ yrs exp" },
-  { name:"Dr. Girish Kawthekar",           specialty:"Cardiologist",         address:"Medanta Hospital, Vijay Nagar",                       phone:"0731-474-7185", exp:"41+ yrs exp" },
-  { name:"Dr. Sagheer Ahmad Qureshi",      specialty:"Cardiologist",         address:"Medanta Hospital, Vijay Nagar",                       phone:"0731-474-7185", exp:"26+ yrs exp" },
-  { name:"Dr. Deepesh Kothari",            specialty:"Cardiologist",         address:"V One Hospital, AB Road",                            phone:"0731-358-8888" },
-  { name:"Dr. Shailendra Trivedi",         specialty:"Cardiologist",         address:"Vishesh Jupiter Hospital, Ring Road",                 phone:"0731-471-8111" },
-  { name:"Dr. Vikram Balwani",             specialty:"General Physician",    address:"Choithram Hospital, Manik Bagh Road",                 phone:"0731-236-2491" },
-  { name:"Dr. Sumit Sinha",               specialty:"General Physician",    address:"GSS Clinic, FG-45 Scheme-54, Vijay Nagar",            phone:"062629-24365", timing:"Mon–Sat 11AM–5PM, 6:30–9PM" },
-  { name:"Dr. Moiz Topiwala",             specialty:"General Physician",    address:"Vijay Nagar, Indore",                                exp:"MBBS, DNB" },
-  { name:"Dr. Shailendra Jain",           specialty:"Orthopedic Surgeon",   address:"Dr. Jain's Orthopedic Clinic",                       exp:"18+ yrs exp" },
-  { name:"Dr. Sandeep Singh",             specialty:"Neurologist",          address:"Aastha Clinic, Indore",                              exp:"15+ yrs exp" },
-  { name:"Dr. Partisha Narayan Bhargava", specialty:"Neurologist",          address:"V One Hospital, AB Road",                            phone:"0731-358-8888" },
-  { name:"Dr. S.K. Patidar",              specialty:"Urologist",            address:"Medanta Hospital, Vijay Nagar",                       phone:"0731-474-7185", exp:"20+ yrs exp" },
-  { name:"Dr. Sudhir Bansal",             specialty:"Oncologist",           address:"Bansal Cancer Hospital",                             phone:"0731-234-0477", exp:"25+ yrs exp" },
-  { name:"Dr. Vivek Mehta",               specialty:"Dermatologist",        address:"Skin & Hair Clinic, Indore",                         exp:"12+ yrs exp" },
-  { name:"Dr. Jagrati Yadav",             specialty:"Homeopathy Doctor",    address:"N-100, Singapore Green View, Vijay Nagar, Indore",   phone:"+91 97536 32223", timing:"Mon–Sat 9:00 AM – 7:00 PM", hasPhoto:true },
-];
-
-const SPECIALTY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  "Cardiologist":      { bg:"rgba(220,53,69,0.12)",  text:"#b02a37", border:"rgba(220,53,69,0.28)" },
-  "General Physician": { bg:"rgba(26,107,74,0.11)",  text:"#1a6b4a", border:"rgba(26,107,74,0.28)" },
-  "Orthopedic Surgeon":{ bg:"rgba(100,80,180,0.11)", text:"#5040a0", border:"rgba(100,80,180,0.28)" },
-  "Neurologist":       { bg:"rgba(13,110,253,0.11)", text:"#0d5dc5", border:"rgba(13,110,253,0.28)" },
-  "Urologist":         { bg:"rgba(32,178,170,0.11)", text:"#108080", border:"rgba(32,178,170,0.28)" },
-  "Oncologist":        { bg:"rgba(220,130,50,0.12)", text:"#b06010", border:"rgba(220,130,50,0.28)" },
-  "Dermatologist":     { bg:"rgba(201,168,76,0.14)", text:"#8a6a00", border:"rgba(201,168,76,0.35)" },
-  "Homeopathy Doctor": { bg:"rgba(76,175,80,0.12)",  text:"#2e7d32", border:"rgba(76,175,80,0.30)" },
-};
-
-const ALL_SPECIALTIES = ["All", ...Array.from(new Set(DOCTORS.map(d => d.specialty)))];
-
-function initials(name: string) {
-  return name.replace("Dr. ", "").split(" ").slice(0,2).map(w => w[0]).join("").toUpperCase();
-}
-
-function DoctorMiniCard({ doc, idx }: { doc: Doctor; idx: number }) {
-  const sc = SPECIALTY_COLORS[doc.specialty] ?? { bg:"rgba(26,107,74,0.11)", text:"#1a6b4a", border:"rgba(26,107,74,0.28)" };
-  const phoneHref = doc.phone ? `tel:${doc.phone.replace(/\s/g,"")}` : undefined;
-
-  return (
-    <Reveal delay={Math.min(idx, 5) * 80} direction="up">
-      <div className="card-lift" style={{ background:"#fff", borderRadius:18, overflow:"hidden", border:"1px solid rgba(201,168,76,0.18)", boxShadow:"0 4px 20px rgba(13,31,26,0.07)", display:"flex", flexDirection:"column", height:"100%" }}>
-
-        {/* Card header */}
-        <div style={{ background:"linear-gradient(135deg,#1a6b4a 0%,#0d1f1a 100%)", padding:doc.hasPhoto?"32px 20px 22px":"24px 20px 20px", textAlign:"center", position:"relative" }}>
-          <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle at 30% 20%,rgba(201,168,76,0.13) 0%,transparent 60%)", pointerEvents:"none" }} />
-
-          {doc.hasPhoto ? (
-            <div style={{ position:"relative", width:96, height:96, margin:"0 auto 14px" }}>
-              <div className="doc-ring" />
-              <div style={{ width:96, height:96, borderRadius:"50%", border:"3px solid #c9a84c", overflow:"hidden", boxShadow:"0 6px 18px rgba(0,0,0,0.3)", position:"relative", zIndex:1 }}>
-                <img src={`${BASE}dr-jagrati-yadav.png`} alt={doc.name} style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }} />
-              </div>
-            </div>
-          ) : (
-            <div style={{ width:80, height:80, borderRadius:"50%", border:"3px solid rgba(201,168,76,0.5)", background:"rgba(247,243,238,0.10)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 14px", position:"relative", zIndex:1 }}>
-              <span style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:26, fontWeight:700, color:"#c9a84c" }}>{initials(doc.name)}</span>
-            </div>
-          )}
-
-          <h3 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:20, fontWeight:700, color:"#f7f3ee", marginBottom:8, lineHeight:1.2, position:"relative", zIndex:1 }}>{doc.name}</h3>
-          <div style={{ display:"inline-block", background:sc.bg, border:`1px solid ${sc.border}`, color:sc.text, padding:"3px 12px", borderRadius:100, fontSize:12, fontWeight:700, position:"relative", zIndex:1 }}>
-            {doc.specialty}
-          </div>
-        </div>
-
-        {/* Card body */}
-        <div style={{ padding:"20px 20px 16px", display:"flex", flexDirection:"column", flex:1 }}>
-          <div style={{ flex:1 }}>
-            {[
-              { icon:"📍", label:"Address", val: doc.address },
-              ...(doc.exp   ? [{ icon:"⭐", label:"Experience", val: doc.exp }]   : []),
-              ...(doc.phone ? [{ icon:"📞", label:"Phone",      val: doc.phone }]  : []),
-              ...(doc.timing? [{ icon:"🕐", label:"Hours",      val: doc.timing }] : []),
-            ].map((row, i) => (
-              <div key={i}>
-                {i > 0 && <div style={{ height:1, background:"rgba(201,168,76,0.1)", margin:"10px 0" }} />}
-                <div style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
-                  <div style={{ width:30, height:30, background:"rgba(26,107,74,0.08)", borderRadius:7, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:14 }}>{row.icon}</div>
-                  <div>
-                    <div style={{ fontSize:10, color:"#9ab0a8", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:2 }}>{row.label}</div>
-                    <div style={{ fontSize:13, color:"#0d1f1a", lineHeight:1.45 }}>
-                      {row.label === "Phone" && phoneHref
-                        ? <a href={phoneHref} style={{ color:"#1a6b4a", fontWeight:600, textDecoration:"none" }}>{row.val}</a>
-                        : row.val}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <a href={phoneHref ?? "tel:+919753632223"} style={{ textDecoration:"none", display:"block", marginTop:18 }}>
-            <button className="btn-green" style={{ width:"100%", padding:"11px 14px", fontSize:13 }}>
-              📞 Call to Book
-            </button>
-          </a>
-        </div>
-      </div>
-    </Reveal>
-  );
-}
-
-function DoctorsSection() {
-  const [active, setActive] = useState("All");
-  const filtered = active === "All" ? DOCTORS : DOCTORS.filter(d => d.specialty === active);
-
-  return (
-    <section id="doctors" style={{ background:"linear-gradient(180deg,#eee8e0 0%,#f7f3ee 100%)" }}>
-      <SectionBanner icon="👨‍⚕️" label="Our Doctors — Find a Specialist" accent="#0d3d28" />
-      <div style={{ padding:"80px 20px 90px" }}>
-      <div style={{ maxWidth:1200, margin:"0 auto" }}>
-
-        {/* Heading */}
-        <div style={{ textAlign:"center", marginBottom:48 }}>
-          <Reveal><div className="gold-bar" /></Reveal>
-          <Reveal delay={100}>
-            <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"clamp(34px,5vw,54px)", fontWeight:700, color:"#0d1f1a", marginBottom:12 }}>Our Doctors</h2>
-          </Reveal>
-          <Reveal delay={200}>
-            <p style={{ fontSize:16, color:"#5a7a6e", maxWidth:480, margin:"0 auto", lineHeight:1.7 }}>
-              15 trusted specialists across Indore — handpicked for expertise and patient care
-            </p>
-          </Reveal>
-        </div>
-
-        {/* Specialty filter */}
-        <Reveal delay={150}>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:10, justifyContent:"center", marginBottom:48 }}>
-            {ALL_SPECIALTIES.map(sp => {
-              const isActive = active === sp;
-              const sc = SPECIALTY_COLORS[sp];
-              return (
-                <button
-                  key={sp}
-                  onClick={() => setActive(sp)}
-                  style={{
-                    padding:"7px 16px", borderRadius:100, fontSize:13, fontWeight:600,
-                    cursor:"pointer", border:"1px solid",
-                    fontFamily:"'DM Sans',sans-serif",
-                    transition:"all 0.22s ease",
-                    background: isActive ? "#1a6b4a" : (sc ? sc.bg : "rgba(26,107,74,0.08)"),
-                    color:      isActive ? "#f7f3ee" : (sc ? sc.text : "#1a6b4a"),
-                    borderColor:isActive ? "#1a6b4a" : (sc ? sc.border : "rgba(26,107,74,0.25)"),
-                    boxShadow:  isActive ? "0 4px 14px rgba(26,107,74,0.3)" : "none",
-                    transform:  isActive ? "translateY(-1px)" : "none",
-                  }}
-                >
-                  {sp === "All" ? `All (${DOCTORS.length})` : sp}
-                </button>
-              );
-            })}
-          </div>
-        </Reveal>
-
-        {/* Doctor grid */}
-        <div className="doctors-grid">
-          {filtered.map((doc, i) => (
-            <DoctorMiniCard key={doc.name} doc={doc} idx={i} />
-          ))}
-        </div>
-
-        {/* Count badge */}
-        <Reveal delay={100}>
-          <p style={{ textAlign:"center", marginTop:40, fontSize:14, color:"#9ab0a8", fontFamily:"'DM Sans',sans-serif" }}>
-            Showing {filtered.length} of {DOCTORS.length} doctors
-          </p>
-        </Reveal>
-      </div>
-
-      <style>{`
-        .doctors-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 22px;
-          align-items: start;
-        }
-        @media (max-width: 900px) {
-          .doctors-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 560px) {
-          .doctors-grid { grid-template-columns: 1fr; }
-        }
-      `}</style>
-      </div>
-    </section>
-  );
-}
-
-/* ── Map ─────────────────────────────────────────────────────────────── */
-function MapSection() {
-  return (
-    <section id="location" style={{ background:"#f7f3ee" }}>
-      <SectionBanner icon="📍" label="Location — Find the Clinic" accent="#145538" />
-      <div style={{ padding:"72px 20px 80px" }}>
-      <div style={{ maxWidth:1100, margin:"0 auto" }}>
-        <div style={{ textAlign:"center", marginBottom:44 }}>
-          <Reveal><div className="gold-bar" /></Reveal>
-          <Reveal delay={100}>
-            <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"clamp(30px,5vw,50px)", fontWeight:700, color:"#0d1f1a", marginBottom:10 }}>Find the Clinic</h2>
-          </Reveal>
-          <Reveal delay={200}>
-            <p style={{ fontSize:15, color:"#5a7a6e" }}>Singapore Green View Township, Vijay Nagar, Indore</p>
-          </Reveal>
-        </div>
-        <Reveal delay={200}>
-          <div style={{ borderRadius:18, overflow:"hidden", border:"1px solid rgba(201,168,76,0.2)", boxShadow:"0 8px 30px rgba(13,31,26,0.10)" }}>
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3682.5!2d75.905614!3d22.800864!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3963849d2b1b6e97%3A0xe5d96adbc9d9a3bb!2sSINGAPORE%20GREEN%20VIEW%20TOWNSHIP!5e0!3m2!1sen!2sin"
-              width="100%" height="420" style={{ border:0, display:"block" }}
-              allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade"
-              title="Dr. Jagrati Yadav Clinic Location"
-            />
-          </div>
-        </Reveal>
-      </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── AI Section ──────────────────────────────────────────────────────── */
-function AISection() {
-  const features = [
-    { icon:"🩺", title:"Symptom Checker",   desc:"Describe your symptoms in natural language and get an AI-powered preliminary assessment before visiting a doctor." },
-    { icon:"📄", title:"Report Simplifier", desc:"Upload your medical reports and get clear, simple explanations of your test results — no medical jargon." },
-    { icon:"🏥", title:"Hospital Guide",     desc:"Navigate Indore's hospitals with AI — find the right department, get directions, and understand procedures." },
-  ];
-
-  return (
-    <section id="ai" style={{ background:"linear-gradient(135deg,#0d1f1a 0%,#1a6b4a 100%)", position:"relative", overflow:"hidden" }}>
-      <SectionBanner icon="🤖" label="AI Assistant — Health Tools" accent="rgba(255,255,255,0.08)" />
-      <div style={{ padding:"80px 20px 96px" }}>
-      <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(ellipse at 70% 30%,rgba(201,168,76,0.09) 0%,transparent 60%),radial-gradient(ellipse at 20% 80%,rgba(247,243,238,0.04) 0%,transparent 50%)", pointerEvents:"none" }} />
-
-      <div style={{ maxWidth:1100, margin:"0 auto", position:"relative", zIndex:1 }}>
-        <div style={{ textAlign:"center", marginBottom:60 }}>
-          <Reveal>
-            <div style={{ display:"inline-block", background:"rgba(26,107,74,0.18)", border:"1px solid rgba(26,107,74,0.4)", color:"#4ade80", padding:"5px 16px", borderRadius:100, fontSize:11, fontWeight:700, letterSpacing:"1.5px", textTransform:"uppercase", marginBottom:20 }}>● Now Live</div>
-          </Reveal>
-          <Reveal delay={100}>
-            <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"clamp(34px,5vw,56px)", fontWeight:700, color:"#f7f3ee", marginBottom:16, lineHeight:1.15 }}>AI-Powered Health Tools</h2>
-          </Reveal>
-          <Reveal delay={200}>
-            <p style={{ fontSize:16, color:"rgba(247,243,238,0.65)", maxWidth:500, margin:"0 auto", lineHeight:1.7 }}>
-              The next generation of healthcare navigation is almost here — intelligent tools that make healthcare accessible to everyone in Indore.
-            </p>
-          </Reveal>
-        </div>
-
-        <div className="ai-grid" style={{ marginBottom:48 }}>
-          {features.map((f, i) => (
-            <Reveal key={i} delay={i * 140} direction="up">
-              <div className="card-lift" style={{ background:"rgba(247,243,238,0.05)", border:"1px solid rgba(247,243,238,0.10)", borderRadius:18, padding:"30px 24px", backdropFilter:"blur(8px)", height:"100%" }}>
-                <div style={{ fontSize:38, marginBottom:16 }}>{f.icon}</div>
-                <h3 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:24, fontWeight:700, color:"#f7f3ee", marginBottom:10 }}>{f.title}</h3>
-                <p style={{ fontSize:14, color:"rgba(247,243,238,0.60)", lineHeight:1.7, margin:0 }}>{f.desc}</p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-
-      </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── Footer ──────────────────────────────────────────────────────────── */
-function Footer() {
-  return (
-    <footer style={{ background:"#0d1f1a", padding:"40px 20px" }}>
-      <div className="footer-inner" style={{ maxWidth:1100, margin:"0 auto" }}>
-        <a href="#hero" style={{ textDecoration:"none", display:"flex", alignItems:"center" }}>
-          <img src={`${BASE}logo.png`} alt="MedGuide" style={{ height:44, width:"auto", objectFit:"contain", filter:"brightness(0) invert(1)" }} />
-        </a>
-        <p style={{ fontSize:14, color:"rgba(247,243,238,0.55)", fontFamily:"'DM Sans',sans-serif" }}>
-          © 2026 MedGuide. All rights reserved. Indore's trusted healthcare navigator.
-        </p>
-        <a href="tel:+919753632223" style={{ color:"#c9a84c", textDecoration:"none", fontSize:15, fontWeight:600 }}>
-          +91 97536 32223
-        </a>
-      </div>
-    </footer>
-  );
-}
-
-/* ── AI Chat Widget ──────────────────────────────────────────────────── */
-type Msg = { role: "user" | "assistant"; content: string };
-
-const CHAT_CSS = `
+  /* Chat styles */
   .chat-bubble-user {
-    background: #1a6b4a;
-    color: #f7f3ee;
-    border-radius: 16px 16px 4px 16px;
-    align-self: flex-end;
+    background: ${C.primary}; color: #fff;
+    border-radius: 16px 16px 4px 16px; align-self: flex-end;
   }
   .chat-bubble-assistant {
-    background: #fff;
-    color: #0d1f1a;
-    border: 1px solid rgba(201,168,76,0.2);
-    border-radius: 16px 16px 16px 4px;
-    align-self: flex-start;
+    background: #fff; color: ${C.text};
+    border: 1px solid ${C.border};
+    border-radius: 16px 16px 16px 4px; align-self: flex-start;
   }
   @keyframes chat-open {
-    from { opacity:0; transform: scale(0.85) translateY(20px); }
+    from { opacity:0; transform: scale(0.88) translateY(16px); }
     to   { opacity:1; transform: scale(1)    translateY(0); }
   }
-  .chat-open { animation: chat-open 0.3s ease forwards; }
+  .chat-open { animation: chat-open 0.28s ease forwards; }
   @keyframes typing-dot {
-    0%,80%,100% { transform:scale(0.6); opacity:0.4; }
+    0%,80%,100% { transform:scale(0.6); opacity:0.35; }
     40%         { transform:scale(1);   opacity:1; }
   }
   .typing-dot {
-    width:7px; height:7px; background:#1a6b4a; border-radius:50%;
+    width:7px; height:7px; background:${C.primary}; border-radius:50%;
     display:inline-block; margin:0 2px;
     animation: typing-dot 1.2s ease infinite;
   }
   .typing-dot:nth-child(2) { animation-delay:0.2s; }
   .typing-dot:nth-child(3) { animation-delay:0.4s; }
-  .chat-send-btn {
-    background: #1a6b4a; color: #f7f3ee;
-    border: none; border-radius: 10px;
-    width: 40px; height: 40px;
-    cursor: pointer; font-size: 18px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    transition: background 0.2s, transform 0.15s;
-  }
-  .chat-send-btn:hover:not(:disabled) { background:#145538; transform:scale(1.07); }
-  .chat-send-btn:disabled { opacity:0.5; cursor:default; }
   .chat-input {
-    flex: 1; border: 1px solid rgba(26,107,74,0.25);
-    border-radius: 10px; padding: 10px 14px;
-    font-size: 14px; font-family: 'DM Sans', sans-serif;
-    outline: none; resize: none;
-    background: #fff; color: #0d1f1a;
-    transition: border-color 0.2s;
-    max-height: 100px; overflow-y: auto;
+    flex:1; border:1.5px solid ${C.border};
+    border-radius:10px; padding:10px 14px;
+    font-size:14px; font-family:inherit;
+    outline:none; resize:none;
+    background:#fff; color:${C.text};
+    transition:border-color 0.2s;
+    max-height:100px; overflow-y:auto;
   }
-  .chat-input:focus { border-color: #1a6b4a; }
-  .chat-input::placeholder { color: #9ab0a8; }
+  .chat-input:focus { border-color:${C.primary}; }
+  .chat-input::placeholder { color:#9CA3AF; }
   @keyframes fab-pulse {
-    0%,100% { box-shadow: 0 0 0 0   rgba(26,107,74,0.5); }
-    50%      { box-shadow: 0 0 0 12px rgba(26,107,74,0); }
+    0%,100% { box-shadow: 0 0 0 0   rgba(11,110,79,0.45); }
+    50%      { box-shadow: 0 0 0 10px rgba(11,110,79,0); }
   }
-  .chat-fab { animation: fab-pulse 2.5s ease-in-out infinite; }
+  .chat-fab { animation: fab-pulse 2.8s ease-in-out infinite; }
+  .chat-send {
+    background:${C.primary}; color:#fff; border:none; border-radius:10px;
+    width:40px; height:40px; cursor:pointer; font-size:17px;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    transition:background 0.18s, transform 0.15s;
+  }
+  .chat-send:hover:not(:disabled) { background:${C.primary2}; transform:scale(1.06); }
+  .chat-send:disabled { opacity:0.45; cursor:default; }
 `;
 
+/* ══════════════════════════════════════════════════════════════════════
+   NAVBAR
+══════════════════════════════════════════════════════════════════════ */
+function Navbar() {
+  const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 12);
+    window.addEventListener("scroll", fn);
+    return () => window.removeEventListener("scroll", fn);
+  }, []);
+
+  const links = [
+    { label: "Home",         href: "#hero" },
+    { label: "Find Doctors", href: "#doctors" },
+    { label: "AI Tools",     href: "#ai" },
+    { label: "Location",     href: "#location" },
+  ];
+
+  return (
+    <nav style={{
+      position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000,
+      background: scrolled ? "rgba(255,255,255,0.97)" : "#fff",
+      boxShadow: scrolled ? "0 1px 16px rgba(0,0,0,0.08)" : "0 1px 0 #E5E7EB",
+      backdropFilter: "blur(12px)",
+      transition: "box-shadow 0.3s",
+    }}>
+      <div style={{ maxWidth:1200, margin:"0 auto", padding:"0 24px", display:"flex", alignItems:"center", justifyContent:"space-between", height:72 }}>
+        <a href="#hero" style={{ textDecoration:"none", display:"flex", alignItems:"center" }}>
+          <img src={`${BASE}logo.png`} alt="Health Navigator" style={{ height:56, width:"auto", objectFit:"contain" }} />
+        </a>
+
+        <div className="desktop-nav" style={{ display:"flex", alignItems:"center", gap:32 }}>
+          {links.map(l => <a key={l.href} href={l.href} className="nav-link">{l.label}</a>)}
+        </div>
+
+        <div className="desktop-nav" style={{ display:"flex", alignItems:"center", gap:12 }}>
+          <a href="tel:+919753632223" style={{ textDecoration:"none" }}>
+            <button className="btn-outline btn-sm">📞 Contact</button>
+          </a>
+          <a href="#doctors" style={{ textDecoration:"none" }}>
+            <button className="btn-primary btn-sm">Book Appointment</button>
+          </a>
+        </div>
+
+        <button className="hamburger" onClick={() => setOpen(o => !o)}
+          style={{ background:"none", border:"none", cursor:"pointer", fontSize:22, color:C.text, display:"none", alignItems:"center", padding:6 }}>
+          {open ? "✕" : "☰"}
+        </button>
+      </div>
+
+      <div className="mobile-menu" style={{
+        background:"#fff", borderTop:`1px solid ${C.border}`,
+        maxHeight: open ? 420 : 0, overflow:"hidden",
+        transition:"max-height 0.4s ease",
+      }}>
+        <div style={{ padding:"12px 24px 20px" }}>
+          {links.map(l => (
+            <a key={l.href} href={l.href} onClick={() => setOpen(false)} style={{
+              display:"block", padding:"12px 0",
+              borderBottom:`1px solid ${C.border}`,
+              color:C.text, textDecoration:"none", fontSize:15, fontWeight:500,
+            }}>{l.label}</a>
+          ))}
+          <a href="#doctors" style={{ textDecoration:"none", display:"block", marginTop:16 }}>
+            <button className="btn-primary" style={{ width:"100%" }}>Book Appointment</button>
+          </a>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   HERO
+══════════════════════════════════════════════════════════════════════ */
+function Hero() {
+  const stats = [
+    { icon:"👨‍⚕️", value:"15+",  label:"Verified Doctors" },
+    { icon:"⭐",   value:"4.8",  label:"Avg. Rating" },
+    { icon:"📅",   value:"5 min", label:"Avg. Match Time" },
+    { icon:"🤖",   value:"24/7", label:"AI Support" },
+  ];
+
+  return (
+    <section id="hero" style={{
+      minHeight:"100svh",
+      background:`linear-gradient(135deg, #063d2c 0%, ${C.primary} 50%, #14996b 100%)`,
+      display:"flex", flexDirection:"column", justifyContent:"center",
+      padding:"90px 24px 0", position:"relative", overflow:"hidden",
+    }}>
+      {/* Decorative shapes */}
+      <div className="shape-a" style={{ position:"absolute", top:"-100px", right:"-60px", width:480, height:480, borderRadius:"50%", background:"rgba(255,255,255,0.04)", pointerEvents:"none" }} />
+      <div className="shape-b" style={{ position:"absolute", bottom:"80px", left:"-80px", width:360, height:360, borderRadius:"50%", background:"rgba(255,255,255,0.03)", pointerEvents:"none" }} />
+      <div style={{ position:"absolute", top:"20%", right:"8%", width:120, height:120, borderRadius:"30px", background:"rgba(255,255,255,0.05)", transform:"rotate(20deg)", pointerEvents:"none" }} />
+
+      <div style={{ maxWidth:1100, margin:"0 auto", width:"100%", position:"relative", zIndex:1, display:"grid", gridTemplateColumns:"1fr 1fr", gap:48, alignItems:"center" }}>
+
+        {/* Left: text */}
+        <div>
+          <Reveal>
+            <div style={{ display:"inline-flex", alignItems:"center", gap:8, background:"rgba(255,255,255,0.12)", border:"1px solid rgba(255,255,255,0.22)", color:"#fff", padding:"5px 14px", borderRadius:100, fontSize:12, fontWeight:600, letterSpacing:"0.5px", marginBottom:20 }}>
+              <span style={{ width:6, height:6, borderRadius:"50%", background:"#4ADE80", display:"inline-block" }} />
+              Indore's Trusted Healthcare Navigator
+            </div>
+          </Reveal>
+
+          <Reveal delay={80}>
+            <h1 style={{ fontSize:"clamp(34px,4.5vw,58px)", fontWeight:800, color:"#fff", lineHeight:1.1, marginBottom:20, letterSpacing:"-0.5px" }}>
+              Find the Right Doctor,{" "}
+              <span style={{ color:"#6EE7B7" }}>Anytime.</span>
+            </h1>
+          </Reveal>
+
+          <Reveal delay={160}>
+            <p style={{ fontSize:"clamp(15px,1.5vw,17px)", color:"rgba(255,255,255,0.78)", lineHeight:1.75, marginBottom:32, maxWidth:480 }}>
+              MedGuide connects Indore residents with the right specialist in minutes. No guesswork, no delays — just expert care matched to your needs.
+            </p>
+          </Reveal>
+
+          <Reveal delay={240}>
+            <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:48 }}>
+              <a href="#doctors" style={{ textDecoration:"none" }}>
+                <button className="btn-primary" style={{ padding:"13px 28px", fontSize:15 }}>
+                  🔍 Find Doctors
+                </button>
+              </a>
+              <a href="#ai" style={{ textDecoration:"none" }}>
+                <button className="btn-outline-white" style={{ padding:"13px 28px", fontSize:15 }}>
+                  🤖 Check Symptoms
+                </button>
+              </a>
+            </div>
+          </Reveal>
+
+          <Reveal delay={320}>
+            <div style={{ display:"flex", gap:16, alignItems:"center", flexWrap:"wrap" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                {[1,2,3,4,5].map(i => <span key={i} style={{ color:"#FCD34D", fontSize:16 }}>★</span>)}
+              </div>
+              <span style={{ fontSize:13, color:"rgba(255,255,255,0.72)" }}>Trusted by 1,000+ patients in Indore</span>
+            </div>
+          </Reveal>
+        </div>
+
+        {/* Right: visual card */}
+        <Reveal delay={200} direction="right">
+          <div style={{ display:"flex", justifyContent:"center", alignItems:"center" }}>
+            <div style={{ background:"rgba(255,255,255,0.10)", border:"1px solid rgba(255,255,255,0.18)", borderRadius:24, padding:28, backdropFilter:"blur(16px)", maxWidth:360, width:"100%" }}>
+              <div style={{ background:"#fff", borderRadius:16, padding:20, marginBottom:16 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
+                  <div style={{ width:48, height:48, borderRadius:"50%", border:`3px solid ${C.primary}`, overflow:"hidden" }}>
+                    <img src={`${BASE}dr-jagrati-yadav.png`} alt="Dr. Jagrati Yadav" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }} />
+                  </div>
+                  <div>
+                    <div style={{ fontWeight:700, fontSize:14, color:C.text }}>Dr. Jagrati Yadav</div>
+                    <div style={{ fontSize:12, color:C.muted }}>Homeopathy Doctor</div>
+                    <div style={{ fontSize:11, color:"#F59E0B" }}>★★★★★ 5.0</div>
+                  </div>
+                </div>
+                <div style={{ background:C.lighter, borderRadius:10, padding:"10px 14px", fontSize:13, color:C.primary, fontWeight:600 }}>
+                  📍 Vijay Nagar, Indore · Mon–Sat 9AM–7PM
+                </div>
+              </div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                {["❤️ Cardiologist","🧠 Neurologist","🦴 Orthopedic","🩺 General"].map(s => (
+                  <div key={s} style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.2)", borderRadius:10, padding:"9px 12px", fontSize:12, fontWeight:600, color:"#fff", textAlign:"center" }}>{s}</div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Reveal>
+
+      </div>
+
+      {/* Stats strip */}
+      <div style={{ maxWidth:1100, margin:"48px auto 0", width:"100%", position:"relative", zIndex:1 }}>
+        <div className="stat-strip" style={{ background:"rgba(255,255,255,0.10)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:"20px 20px 0 0", backdropFilter:"blur(12px)", overflow:"hidden" }}>
+          {stats.map((s, i) => (
+            <div key={i} style={{ padding:"22px 16px", textAlign:"center", borderRight: i < 3 ? "1px solid rgba(255,255,255,0.12)" : "none" }}>
+              <div style={{ fontSize:22, marginBottom:6 }}>{s.icon}</div>
+              <div style={{ fontSize:"clamp(22px,3vw,30px)", fontWeight:800, color:"#fff", lineHeight:1 }}>{s.value}</div>
+              <div style={{ fontSize:12, color:"rgba(255,255,255,0.65)", marginTop:4, fontWeight:500 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   HOW IT WORKS
+══════════════════════════════════════════════════════════════════════ */
+function HowItWorks() {
+  const steps = [
+    { num:"01", icon:"💬", color:C.primary,   bg:C.light,   title:"Describe Symptoms", desc:"Tell us what you're experiencing in plain language. Our AI picks up every detail that matters." },
+    { num:"02", icon:"🎯", color:C.blue,      bg:"#EFF6FF",  title:"Get Matched",        desc:"Our system analyses your symptoms and connects you with the exact right specialist — in minutes." },
+    { num:"03", icon:"📅", color:C.orange,    bg:"#FFF7ED",  title:"Book & Visit",       desc:"Confirm your appointment instantly. Walk in knowing you're in exactly the right hands." },
+  ];
+
+  return (
+    <section id="how-it-works" style={{ padding:"80px 24px", background:"#fff" }}>
+      <div style={{ maxWidth:1100, margin:"0 auto" }}>
+        <Reveal>
+          <div style={{ textAlign:"center", marginBottom:52 }}>
+            <div className="section-label">How It Works</div>
+            <h2 style={{ fontSize:"clamp(28px,4vw,42px)", fontWeight:800, color:C.text, lineHeight:1.2, marginBottom:12 }}>
+              3 Simple Steps to Expert Care
+            </h2>
+            <p style={{ fontSize:16, color:C.muted, maxWidth:420, margin:"0 auto" }}>
+              From symptom to specialist in under 5 minutes
+            </p>
+          </div>
+        </Reveal>
+
+        <div className="steps-grid">
+          {steps.map((s, i) => (
+            <Reveal key={i} delay={i * 120}>
+              <div className="card" style={{ padding:"32px 26px", height:"100%", position:"relative", overflow:"hidden" }}>
+                <div style={{ position:"absolute", top:16, right:20, fontWeight:800, fontSize:52, color:`${s.color}0D`, lineHeight:1, fontVariantNumeric:"tabular-nums" }}>{s.num}</div>
+                <div style={{ width:52, height:52, borderRadius:14, background:s.bg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, marginBottom:20, border:`1px solid ${s.color}22` }}>{s.icon}</div>
+                <h3 style={{ fontSize:18, fontWeight:700, color:C.text, marginBottom:10 }}>{s.title}</h3>
+                <p style={{ fontSize:14, color:C.muted, lineHeight:1.7 }}>{s.desc}</p>
+                <div style={{ position:"absolute", bottom:0, left:0, right:0, height:3, background:s.color, borderRadius:"0 0 14px 14px", opacity:0.7 }} />
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   DOCTORS
+══════════════════════════════════════════════════════════════════════ */
+type Doctor = {
+  name: string; specialty: string; address: string;
+  phone?: string; timing?: string; exp?: string;
+  hasPhoto?: boolean; rating: number;
+};
+
+const DOCTORS: Doctor[] = [
+  { name:"Dr. R.N. Yadav",                specialty:"Cardiologist",         address:"Heart Care Center, Indore",                        exp:"20+ yrs",  rating:4.8 },
+  { name:"Dr. Girish Kawthekar",           specialty:"Cardiologist",         address:"Medanta Hospital, Vijay Nagar",                     phone:"0731-474-7185", exp:"41+ yrs", rating:4.9 },
+  { name:"Dr. Sagheer Ahmad Qureshi",      specialty:"Cardiologist",         address:"Medanta Hospital, Vijay Nagar",                     phone:"0731-474-7185", exp:"26+ yrs", rating:4.7 },
+  { name:"Dr. Deepesh Kothari",            specialty:"Cardiologist",         address:"V One Hospital, AB Road",                          phone:"0731-358-8888", rating:4.6 },
+  { name:"Dr. Shailendra Trivedi",         specialty:"Cardiologist",         address:"Vishesh Jupiter Hospital, Ring Road",               phone:"0731-471-8111", rating:4.7 },
+  { name:"Dr. Vikram Balwani",             specialty:"General Physician",    address:"Choithram Hospital, Manik Bagh Road",               phone:"0731-236-2491", rating:4.5 },
+  { name:"Dr. Sumit Sinha",               specialty:"General Physician",    address:"GSS Clinic, FG-45, Vijay Nagar",                   phone:"062629-24365", timing:"Mon–Sat 11AM–9PM", rating:4.8 },
+  { name:"Dr. Moiz Topiwala",             specialty:"General Physician",    address:"Vijay Nagar, Indore",                              exp:"MBBS, DNB", rating:4.6 },
+  { name:"Dr. Shailendra Jain",           specialty:"Orthopedic Surgeon",   address:"Dr. Jain's Orthopedic Clinic",                     exp:"18+ yrs", rating:4.9 },
+  { name:"Dr. Sandeep Singh",             specialty:"Neurologist",          address:"Aastha Clinic, Indore",                            exp:"15+ yrs", rating:4.7 },
+  { name:"Dr. Partisha Narayan Bhargava", specialty:"Neurologist",          address:"V One Hospital, AB Road",                          phone:"0731-358-8888", rating:4.8 },
+  { name:"Dr. S.K. Patidar",              specialty:"Urologist",            address:"Medanta Hospital, Vijay Nagar",                     phone:"0731-474-7185", exp:"20+ yrs", rating:4.6 },
+  { name:"Dr. Sudhir Bansal",             specialty:"Oncologist",           address:"Bansal Cancer Hospital",                           phone:"0731-234-0477", exp:"25+ yrs", rating:4.9 },
+  { name:"Dr. Vivek Mehta",               specialty:"Dermatologist",        address:"Skin & Hair Clinic, Indore",                       exp:"12+ yrs", rating:4.7 },
+  { name:"Dr. Jagrati Yadav",             specialty:"Homeopathy Doctor",    address:"N-100, Singapore Green View, Vijay Nagar",          phone:"+91 97536 32223", timing:"Mon–Sat 9AM–7PM", hasPhoto:true, rating:5.0 },
+];
+
+const SP_COLORS: Record<string, { bg:string; text:string }> = {
+  "Cardiologist":       { bg:"#FEE2E2", text:"#B91C1C" },
+  "General Physician":  { bg:C.light,   text:C.primary },
+  "Orthopedic Surgeon": { bg:"#EDE9FE", text:"#6D28D9" },
+  "Neurologist":        { bg:"#DBEAFE", text:"#1D4ED8" },
+  "Urologist":          { bg:"#CCFBF1", text:"#0F766E" },
+  "Oncologist":         { bg:"#FEF3C7", text:"#B45309" },
+  "Dermatologist":      { bg:"#FCE7F3", text:"#9D174D" },
+  "Homeopathy Doctor":  { bg:"#DCFCE7", text:"#166534" },
+};
+
+const ALL_SPECS = ["All", ...Array.from(new Set(DOCTORS.map(d => d.specialty)))];
+function initials(name: string) { return name.replace("Dr. ","").split(" ").slice(0,2).map(w=>w[0]).join("").toUpperCase(); }
+function stars(r: number) { return "★".repeat(Math.floor(r)) + (r % 1 >= 0.5 ? "½" : ""); }
+
+function DoctorCard({ doc }: { doc: Doctor }) {
+  const sc = SP_COLORS[doc.specialty] ?? { bg:C.light, text:C.primary };
+  const tel = doc.phone ? `tel:${doc.phone.replace(/\s/g,"")}` : "tel:+919753632223";
+  return (
+    <div className="card" style={{ overflow:"hidden", display:"flex", flexDirection:"column" }}>
+      {/* Top strip */}
+      <div style={{ background:`linear-gradient(135deg, ${C.primary} 0%, #0D9466 100%)`, padding:"20px 18px 16px", position:"relative" }}>
+        <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 60%)", pointerEvents:"none" }} />
+        <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+          <div style={{ width:56, height:56, borderRadius:"50%", border:"2.5px solid rgba(255,255,255,0.5)", overflow:"hidden", background:"rgba(255,255,255,0.15)", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+            {doc.hasPhoto
+              ? <img src={`${BASE}dr-jagrati-yadav.png`} alt={doc.name} style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top" }} />
+              : <span style={{ fontWeight:700, fontSize:18, color:"#fff" }}>{initials(doc.name)}</span>
+            }
+          </div>
+          <div>
+            <div style={{ fontWeight:700, fontSize:15, color:"#fff", lineHeight:1.3, marginBottom:4 }}>{doc.name}</div>
+            <span style={{ background:sc.bg, color:sc.text, padding:"2px 10px", borderRadius:100, fontSize:11, fontWeight:700 }}>{doc.specialty}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Body */}
+      <div style={{ padding:"14px 18px 18px", flex:1, display:"flex", flexDirection:"column", gap:10 }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <div>
+            <span className="stars">{stars(doc.rating)}</span>
+            <span style={{ fontSize:12, color:C.muted, marginLeft:5 }}>{doc.rating}</span>
+          </div>
+          {doc.exp && <span style={{ fontSize:12, color:C.muted, background:C.bg, padding:"2px 8px", borderRadius:6 }}>{doc.exp}</span>}
+        </div>
+
+        <div style={{ display:"flex", gap:8, alignItems:"flex-start" }}>
+          <span style={{ fontSize:13, flexShrink:0, marginTop:1 }}>📍</span>
+          <span style={{ fontSize:13, color:C.muted, lineHeight:1.5 }}>{doc.address}</span>
+        </div>
+
+        {doc.timing && (
+          <div style={{ display:"flex", gap:8, alignItems:"flex-start" }}>
+            <span style={{ fontSize:13, flexShrink:0, marginTop:1 }}>🕐</span>
+            <span style={{ fontSize:12, color:C.muted }}>{doc.timing}</span>
+          </div>
+        )}
+
+        <a href={tel} style={{ textDecoration:"none", marginTop:"auto", display:"block" }}>
+          <button className="btn-primary" style={{ width:"100%", padding:"10px 16px", fontSize:13, justifyContent:"center" }}>
+            📞 Book Now
+          </button>
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function DoctorsSection() {
+  const [active, setActive] = useState("All");
+  const [showAll, setShowAll] = useState(false);
+  const filtered = active === "All" ? DOCTORS : DOCTORS.filter(d => d.specialty === active);
+  const visible = showAll ? filtered : filtered.slice(0, 6);
+
+  return (
+    <section id="doctors" style={{ padding:"80px 24px", background:C.bg }}>
+      <div style={{ maxWidth:1200, margin:"0 auto" }}>
+        <Reveal>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", flexWrap:"wrap", gap:16, marginBottom:36 }}>
+            <div>
+              <div className="section-label">Our Specialists</div>
+              <h2 style={{ fontSize:"clamp(26px,3.5vw,40px)", fontWeight:800, color:C.text, lineHeight:1.2 }}>Find Doctors Near You</h2>
+              <p style={{ fontSize:15, color:C.muted, marginTop:6 }}>15 trusted specialists across Indore — verified & rated</p>
+            </div>
+            <div style={{ fontSize:13, color:C.muted }}>
+              Showing <strong style={{ color:C.text }}>{visible.length}</strong> of <strong style={{ color:C.text }}>{filtered.length}</strong> doctors
+            </div>
+          </div>
+        </Reveal>
+
+        {/* Filters */}
+        <Reveal delay={80}>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:32 }}>
+            {ALL_SPECS.map(sp => (
+              <button key={sp} className={`filter-pill${active === sp ? " active" : ""}`} onClick={() => { setActive(sp); setShowAll(false); }}>
+                {sp === "All" ? `All (${DOCTORS.length})` : sp}
+              </button>
+            ))}
+          </div>
+        </Reveal>
+
+        {/* Grid */}
+        <div className="doctors-grid">
+          {visible.map((doc, i) => (
+            <Reveal key={doc.name} delay={Math.min(i % 3, 2) * 80}>
+              <DoctorCard doc={doc} />
+            </Reveal>
+          ))}
+        </div>
+
+        {/* View All toggle */}
+        {filtered.length > 6 && (
+          <Reveal delay={100}>
+            <div style={{ textAlign:"center", marginTop:40 }}>
+              <button className="btn-outline" style={{ padding:"12px 32px" }} onClick={() => setShowAll(v => !v)}>
+                {showAll ? "Show Less ↑" : `View All ${filtered.length} Doctors →`}
+              </button>
+            </div>
+          </Reveal>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   MAP
+══════════════════════════════════════════════════════════════════════ */
+function MapSection() {
+  return (
+    <section id="location" style={{ padding:"80px 24px", background:"#fff" }}>
+      <div style={{ maxWidth:1100, margin:"0 auto" }}>
+        <Reveal>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:40, alignItems:"start" }}>
+
+            {/* Left: info */}
+            <div>
+              <div className="section-label">📍 Location</div>
+              <h2 style={{ fontSize:"clamp(24px,3.5vw,38px)", fontWeight:800, color:C.text, lineHeight:1.2, marginBottom:14 }}>Visit the Clinic</h2>
+              <p style={{ fontSize:15, color:C.muted, lineHeight:1.7, marginBottom:28 }}>
+                Dr. Jagrati Yadav's clinic is conveniently located in Singapore Green View Township, Vijay Nagar — one of Indore's most accessible healthcare hubs.
+              </p>
+
+              {/* Clinic card */}
+              <div className="card" style={{ padding:20, marginBottom:16 }}>
+                <div style={{ display:"flex", gap:14, alignItems:"flex-start" }}>
+                  <div style={{ width:44, height:44, borderRadius:12, background:C.light, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, flexShrink:0 }}>🏥</div>
+                  <div>
+                    <div style={{ fontWeight:700, fontSize:15, color:C.text, marginBottom:4 }}>Dr. Jagrati Yadav — Homeopathy Clinic</div>
+                    <div style={{ fontSize:13, color:C.muted, lineHeight:1.5 }}>N-100, Singapore Green View Township,<br/>Vijay Nagar, Indore, MP</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                {[
+                  { icon:"📞", label:"Phone",   val:"+91 97536 32223" },
+                  { icon:"🕐", label:"Hours",   val:"Mon–Sat, 9AM–7PM" },
+                  { icon:"🚇", label:"Nearby",  val:"Vijay Nagar Square" },
+                  { icon:"⭐", label:"Rating",  val:"5.0 / 5.0" },
+                ].map(r => (
+                  <div key={r.label} style={{ background:C.bg, borderRadius:10, padding:"12px 14px", border:`1px solid ${C.border}` }}>
+                    <div style={{ fontSize:18, marginBottom:4 }}>{r.icon}</div>
+                    <div style={{ fontSize:11, color:C.muted, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.4px", marginBottom:2 }}>{r.label}</div>
+                    <div style={{ fontSize:13, fontWeight:600, color:C.text }}>{r.val}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ marginTop:20 }}>
+                <a href="tel:+919753632223" style={{ textDecoration:"none" }}>
+                  <button className="btn-primary" style={{ padding:"12px 24px" }}>📞 Call for Directions</button>
+                </a>
+              </div>
+            </div>
+
+            {/* Right: map */}
+            <div>
+              <div style={{ borderRadius:16, overflow:"hidden", border:`1px solid ${C.border}`, boxShadow:"0 4px 20px rgba(0,0,0,0.08)" }}>
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3682.5!2d75.905614!3d22.800864!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3963849d2b1b6e97%3A0xe5d96adbc9d9a3bb!2sSINGAPORE%20GREEN%20VIEW%20TOWNSHIP!5e0!3m2!1sen!2sin"
+                  width="100%" height="360" style={{ border:0, display:"block" }}
+                  allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade"
+                  title="Dr. Jagrati Yadav Clinic Location"
+                />
+              </div>
+              <div style={{ background:C.light, borderRadius:10, padding:"10px 14px", marginTop:12, display:"flex", alignItems:"center", gap:8, fontSize:13, color:C.primary, fontWeight:500 }}>
+                <span>📌</span> Singapore Green View Township, Vijay Nagar, Indore
+              </div>
+            </div>
+
+          </div>
+        </Reveal>
+      </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          #location .map-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   AI TOOLS
+══════════════════════════════════════════════════════════════════════ */
+function AISection() {
+  const tools = [
+    { icon:"🩺", color:C.primary, bg:C.light,   title:"Symptom Checker",   desc:"Describe your symptoms in natural language and get an AI-powered assessment and doctor recommendation instantly." },
+    { icon:"📄", color:C.blue,    bg:"#EFF6FF",  title:"Report Simplifier", desc:"Upload your medical reports and receive plain-language explanations — no confusing medical jargon." },
+    { icon:"🏥", color:C.orange,  bg:"#FFF7ED",  title:"Hospital Navigator", desc:"Find the right department, get directions, understand procedures — AI-guided hospital navigation for Indore." },
+  ];
+
+  return (
+    <section id="ai" style={{ padding:"80px 24px", background:C.bg }}>
+      <div style={{ maxWidth:1100, margin:"0 auto" }}>
+        <Reveal>
+          <div style={{ textAlign:"center", marginBottom:52 }}>
+            <div className="section-label">🤖 AI Assistant</div>
+            <div style={{ display:"inline-flex", alignItems:"center", gap:6, background:"#DCFCE7", color:"#166534", padding:"4px 14px", borderRadius:100, fontSize:11, fontWeight:700, letterSpacing:"0.5px", textTransform:"uppercase", marginBottom:12 }}>
+              ● Now Live
+            </div>
+            <h2 style={{ fontSize:"clamp(26px,4vw,42px)", fontWeight:800, color:C.text, lineHeight:1.2, marginBottom:12 }}>
+              AI-Powered Health Tools
+            </h2>
+            <p style={{ fontSize:16, color:C.muted, maxWidth:460, margin:"0 auto" }}>
+              Intelligent tools making healthcare accessible to everyone in Indore
+            </p>
+          </div>
+        </Reveal>
+
+        <div className="ai-grid">
+          {tools.map((t, i) => (
+            <Reveal key={i} delay={i * 100}>
+              <div className="card" style={{ padding:"28px 24px", height:"100%", borderTop:`3px solid ${t.color}` }}>
+                <div style={{ width:52, height:52, borderRadius:14, background:t.bg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, marginBottom:18, border:`1px solid ${t.color}22` }}>{t.icon}</div>
+                <h3 style={{ fontSize:17, fontWeight:700, color:C.text, marginBottom:10 }}>{t.title}</h3>
+                <p style={{ fontSize:14, color:C.muted, lineHeight:1.7 }}>{t.desc}</p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        <Reveal delay={200}>
+          <div style={{ textAlign:"center", marginTop:40, padding:"24px", background:"#fff", borderRadius:16, border:`1px solid ${C.border}` }}>
+            <div style={{ fontSize:14, color:C.muted, marginBottom:8 }}>💬 Try it now — click the chat button at the bottom right</div>
+            <div style={{ fontSize:13, color:C.primary, fontWeight:600 }}>Ask about symptoms · Get doctor recommendations · Available 24/7</div>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   FOOTER
+══════════════════════════════════════════════════════════════════════ */
+function Footer() {
+  return (
+    <footer style={{ background:"#0F172A", color:"#fff", padding:"60px 24px 28px" }}>
+      <div style={{ maxWidth:1100, margin:"0 auto" }}>
+        <div className="footer-cols" style={{ marginBottom:48 }}>
+
+          {/* Brand */}
+          <div>
+            <div style={{ background:"#fff", borderRadius:10, padding:"4px 10px", display:"inline-flex", marginBottom:18 }}>
+              <img src={`${BASE}logo.png`} alt="Health Navigator" style={{ height:40, width:"auto", objectFit:"contain" }} />
+            </div>
+            <p style={{ fontSize:14, color:"#94A3B8", lineHeight:1.75, marginBottom:20, maxWidth:260 }}>
+              Indore's trusted healthcare navigator — connecting patients with the right specialist in minutes.
+            </p>
+            <div style={{ display:"flex", gap:10 }}>
+              {["📘","📸","🐦","▶️"].map((s,i) => (
+                <div key={i} style={{ width:36, height:36, borderRadius:8, background:"rgba(255,255,255,0.07)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15, cursor:"pointer" }}>{s}</div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Links */}
+          <div>
+            <div style={{ fontWeight:700, fontSize:14, color:"#fff", marginBottom:18, textTransform:"uppercase", letterSpacing:"0.5px" }}>Quick Links</div>
+            {["Home","Find Doctors","AI Tools","How It Works","Location"].map(l => (
+              <a key={l} href={`#${l.toLowerCase().replace(/ /g,"-")}`} style={{ display:"block", fontSize:14, color:"#94A3B8", textDecoration:"none", marginBottom:10, transition:"color 0.2s" }}
+                onMouseEnter={e => (e.currentTarget.style.color="#fff")}
+                onMouseLeave={e => (e.currentTarget.style.color="#94A3B8")}>{l}</a>
+            ))}
+          </div>
+
+          {/* Specialties */}
+          <div>
+            <div style={{ fontWeight:700, fontSize:14, color:"#fff", marginBottom:18, textTransform:"uppercase", letterSpacing:"0.5px" }}>Specialties</div>
+            {["Cardiologist","Neurologist","General Physician","Orthopedic","Dermatologist","Homeopathy"].map(s => (
+              <div key={s} style={{ fontSize:14, color:"#94A3B8", marginBottom:10 }}>{s}</div>
+            ))}
+          </div>
+
+          {/* Contact */}
+          <div>
+            <div style={{ fontWeight:700, fontSize:14, color:"#fff", marginBottom:18, textTransform:"uppercase", letterSpacing:"0.5px" }}>Contact Us</div>
+            {[
+              { icon:"📞", val:"+91 97536 32223" },
+              { icon:"📍", val:"Vijay Nagar, Indore, MP" },
+              { icon:"🕐", val:"Mon–Sat, 9AM–7PM" },
+              { icon:"✉️", val:"info@medguide.in" },
+            ].map(r => (
+              <div key={r.icon} style={{ display:"flex", gap:10, marginBottom:14, alignItems:"flex-start" }}>
+                <span style={{ fontSize:14, marginTop:1 }}>{r.icon}</span>
+                <span style={{ fontSize:14, color:"#94A3B8", lineHeight:1.5 }}>{r.val}</span>
+              </div>
+            ))}
+            <a href="tel:+919753632223" style={{ textDecoration:"none", marginTop:4, display:"block" }}>
+              <button className="btn-primary" style={{ fontSize:13, padding:"10px 20px" }}>Book Appointment</button>
+            </a>
+          </div>
+        </div>
+
+        <div style={{ borderTop:"1px solid rgba(255,255,255,0.08)", paddingTop:24, display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12 }}>
+          <p style={{ fontSize:13, color:"#64748B" }}>© 2026 MedGuide · Health Navigator. All rights reserved.</p>
+          <p style={{ fontSize:13, color:"#64748B" }}>Serving Indore with trusted healthcare navigation</p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   CHAT WIDGET
+══════════════════════════════════════════════════════════════════════ */
+type Msg = { role:"user"|"assistant"; content:string };
+
 function ChatWidget() {
-  const [open, setOpen]   = useState(false);
-  const [msgs, setMsgs]   = useState<Msg[]>([
-    { role: "assistant", content: "👋 Hi! I'm MedGuide AI. Tell me your symptoms and I'll help you find the right doctor in Indore." },
+  const [open, setOpen] = useState(false);
+  const [msgs, setMsgs] = useState<Msg[]>([
+    { role:"assistant", content:"👋 Hi! I'm MedGuide AI. Tell me your symptoms and I'll help you find the right doctor in Indore." },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [msgs, loading]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:"smooth" }); }, [msgs, loading]);
 
   async function send() {
     const text = input.trim();
     if (!text || loading) return;
-
-    const userMsg: Msg = { role: "user", content: text };
+    const userMsg: Msg = { role:"user", content:text };
     const history = [...msgs, userMsg];
-    setMsgs(history);
-    setInput("");
-    setLoading(true);
-
+    setMsgs(history); setInput(""); setLoading(true);
     try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history }),
-      });
-      const data = await res.json() as { reply?: string; error?: string };
-      setMsgs(prev => [...prev, { role: "assistant", content: data.reply ?? data.error ?? "Sorry, something went wrong." }]);
+      const res = await fetch("/api/chat", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ messages: history }) });
+      const data = await res.json() as { reply?:string; error?:string };
+      setMsgs(prev => [...prev, { role:"assistant", content: data.reply ?? data.error ?? "Sorry, something went wrong." }]);
     } catch {
-      setMsgs(prev => [...prev, { role: "assistant", content: "Connection error. Please try again." }]);
-    } finally {
-      setLoading(false);
-    }
+      setMsgs(prev => [...prev, { role:"assistant", content:"Connection error. Please try again." }]);
+    } finally { setLoading(false); }
   }
 
   function onKey(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -912,94 +893,58 @@ function ChatWidget() {
 
   return (
     <>
-      <style>{CHAT_CSS}</style>
-
       {/* FAB */}
-      <button
-        className="chat-fab"
-        onClick={() => setOpen(o => !o)}
-        aria-label="Open AI health assistant"
-        style={{
-          position: "fixed", bottom: 28, right: 28, zIndex: 2000,
-          width: 60, height: 60, borderRadius: "50%",
-          background: "linear-gradient(135deg,#1a6b4a,#0d3d28)",
-          border: "3px solid rgba(201,168,76,0.6)",
-          cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 26, color: "#f7f3ee",
-          transition: "transform 0.2s",
-          transform: open ? "scale(0.9) rotate(10deg)" : "scale(1)",
-        }}
-      >
+      <button className="chat-fab" onClick={() => setOpen(o => !o)} aria-label="AI chat"
+        style={{ position:"fixed", bottom:28, right:28, zIndex:2000, width:58, height:58, borderRadius:"50%",
+          background:`linear-gradient(135deg, ${C.primary}, #0A5C41)`,
+          border:"3px solid rgba(255,255,255,0.3)", cursor:"pointer",
+          display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, color:"#fff",
+          transition:"transform 0.2s", transform: open ? "scale(0.9) rotate(8deg)" : "scale(1)" }}>
         {open ? "✕" : "🩺"}
       </button>
 
-      {/* Chat panel */}
       {open && (
-        <div
-          className="chat-open"
-          style={{
-            position: "fixed", bottom: 100, right: 28, zIndex: 1999,
-            width: "min(380px, calc(100vw - 40px))",
-            background: "#f7f3ee",
-            borderRadius: 20,
-            boxShadow: "0 24px 60px rgba(13,31,26,0.22), 0 4px 16px rgba(13,31,26,0.12)",
-            border: "1px solid rgba(201,168,76,0.25)",
-            display: "flex", flexDirection: "column",
-            overflow: "hidden",
-            maxHeight: "min(520px, calc(100svh - 160px))",
-          }}
-        >
+        <div className="chat-open" style={{
+          position:"fixed", bottom:100, right:28, zIndex:1999,
+          width:"min(370px, calc(100vw - 36px))",
+          background:"#fff", borderRadius:20,
+          boxShadow:"0 20px 60px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.08)",
+          border:`1px solid ${C.border}`,
+          display:"flex", flexDirection:"column", overflow:"hidden",
+          maxHeight:"min(520px, calc(100svh - 150px))",
+        }}>
           {/* Header */}
-          <div style={{ background: "linear-gradient(135deg,#1a6b4a,#0d3d28)", padding: "16px 20px", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
-            <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(201,168,76,0.2)", border: "2px solid #c9a84c", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🩺</div>
+          <div style={{ background:`linear-gradient(135deg, ${C.primary}, #0A5C41)`, padding:"14px 18px", display:"flex", alignItems:"center", gap:12, flexShrink:0 }}>
+            <div style={{ width:36, height:36, borderRadius:"50%", background:"rgba(255,255,255,0.15)", border:"2px solid rgba(255,255,255,0.3)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:17 }}>🩺</div>
             <div>
-              <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 18, fontWeight: 700, color: "#f7f3ee", lineHeight: 1.2 }}>MedGuide AI</div>
-              <div style={{ fontSize: 12, color: "rgba(247,243,238,0.65)", fontFamily: "'DM Sans',sans-serif" }}>Indore Doctor Finder</div>
+              <div style={{ fontWeight:700, fontSize:15, color:"#fff" }}>MedGuide AI</div>
+              <div style={{ fontSize:11, color:"rgba(255,255,255,0.7)" }}>Indore Doctor Finder</div>
             </div>
-            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
-              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80" }} />
-              <span style={{ fontSize: 11, color: "rgba(247,243,238,0.7)", fontFamily: "'DM Sans',sans-serif" }}>Online</span>
+            <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:5 }}>
+              <div style={{ width:7, height:7, borderRadius:"50%", background:"#4ADE80" }} />
+              <span style={{ fontSize:11, color:"rgba(255,255,255,0.7)" }}>Online</span>
             </div>
           </div>
 
           {/* Messages */}
-          <div style={{ flex: 1, overflowY: "auto", padding: "16px 16px 8px", display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ flex:1, overflowY:"auto", padding:"14px 14px 8px", display:"flex", flexDirection:"column", gap:10 }}>
             {msgs.map((m, i) => (
-              <div
-                key={i}
-                className={m.role === "user" ? "chat-bubble-user" : "chat-bubble-assistant"}
-                style={{ padding: "10px 14px", fontSize: 14, lineHeight: 1.55, maxWidth: "85%", fontFamily: "'DM Sans',sans-serif", whiteSpace: "pre-wrap" }}
-              >
+              <div key={i} className={m.role === "user" ? "chat-bubble-user" : "chat-bubble-assistant"} style={{ padding:"10px 14px", fontSize:14, lineHeight:1.55, maxWidth:"85%" }}>
                 {m.content}
               </div>
             ))}
             {loading && (
-              <div className="chat-bubble-assistant" style={{ padding: "10px 14px", display: "inline-flex", alignItems: "center", gap: 2 }}>
-                <span className="typing-dot" />
-                <span className="typing-dot" />
-                <span className="typing-dot" />
+              <div className="chat-bubble-assistant" style={{ padding:"12px 14px" }}>
+                <span className="typing-dot" /><span className="typing-dot" /><span className="typing-dot" />
               </div>
             )}
             <div ref={bottomRef} />
           </div>
 
-          {/* Divider */}
-          <div style={{ height: 1, background: "rgba(201,168,76,0.15)", flexShrink: 0 }} />
-
-          {/* Input row */}
-          <div style={{ padding: "12px 14px", display: "flex", gap: 10, alignItems: "flex-end", background: "#f7f3ee", flexShrink: 0 }}>
-            <textarea
-              className="chat-input"
-              rows={1}
-              placeholder="Describe your symptoms..."
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={onKey}
-              disabled={loading}
-            />
-            <button className="chat-send-btn" onClick={send} disabled={loading || !input.trim()} aria-label="Send">
-              ➤
-            </button>
+          {/* Input */}
+          <div style={{ padding:"10px 12px 14px", borderTop:`1px solid ${C.border}`, display:"flex", gap:8, flexShrink:0 }}>
+            <textarea className="chat-input" rows={1} value={input} onChange={e => setInput(e.target.value)} onKeyDown={onKey} placeholder="Describe your symptoms…" />
+            <button className="chat-send" onClick={send} disabled={loading || !input.trim()}>➤</button>
           </div>
         </div>
       )}
@@ -1007,20 +952,22 @@ function ChatWidget() {
   );
 }
 
-/* ── App ─────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════
+   APP
+══════════════════════════════════════════════════════════════════════ */
 export default function App() {
   return (
     <>
       <style>{GLOBAL_CSS}</style>
       <Navbar />
       <Hero />
-      <div className="sep" />
+      <div className="divider" />
       <HowItWorks />
-      <div className="sep" />
+      <div className="divider" />
       <DoctorsSection />
-      <div className="sep" />
+      <div className="divider" />
       <MapSection />
-      <div className="sep" />
+      <div className="divider" />
       <AISection />
       <Footer />
       <ChatWidget />
