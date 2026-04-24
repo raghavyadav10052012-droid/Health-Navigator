@@ -332,17 +332,16 @@ function Navbar() {
       borderBottom: scrolled ? "1px solid rgba(201,168,76,0.2)" : "1px solid transparent",
       transition: "all 0.3s ease",
     }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 20px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 68 }}>
-        <a href="#hero" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
-          <img src={`${BASE}logo.png`} alt="MedGuide" style={{ height: 52, width: "auto", objectFit: "contain" }} />
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 74 }}>
+        <a href="#hero" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ background: "#fff", borderRadius: 12, padding: "4px 10px 4px 6px", boxShadow: "0 2px 10px rgba(13,31,26,0.10)", display: "flex", alignItems: "center", gap: 8 }}>
+            <img src={`${BASE}logo.png`} alt="MedGuide" style={{ height: 44, width: "auto", objectFit: "contain" }} />
+          </div>
         </a>
 
         {/* Desktop links */}
         <div className="desktop-links" style={{ display: "flex", alignItems: "center", gap: 28 }}>
           {links.map(l => <a key={l.href} href={l.href} className="nav-link">{l.label}</a>)}
-          <a href="tel:+919753632223" style={{ textDecoration: "none" }}>
-            <button className="btn-green" style={{ padding: "10px 20px", fontSize: 14 }}>Book Appointment</button>
-          </a>
         </div>
 
         {/* Hamburger */}
@@ -375,9 +374,6 @@ function Navbar() {
             fontSize: 15, fontWeight: 500,
           }}>{l.label}</a>
         ))}
-        <a href="tel:+919753632223" style={{ textDecoration: "none" }}>
-          <button className="btn-green" style={{ width: "100%", marginTop: 14 }}>Book Appointment</button>
-        </a>
       </div>
     </nav>
   );
