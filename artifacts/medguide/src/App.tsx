@@ -180,6 +180,55 @@ const GLOBAL_CSS = `
   @media (max-width: 768px) { .footer-cols { grid-template-columns: 1fr 1fr; gap: 32px; } }
   @media (max-width: 480px) { .footer-cols { grid-template-columns: 1fr; } }
 
+  /* Hero two-col */
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+  @media (max-width: 820px) {
+    .hero-grid {
+      grid-template-columns: 1fr;
+      gap: 36px;
+    }
+    .hero-grid .hero-card-col {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 8px;
+    }
+    .hero-grid .hero-card-col > div {
+      min-width: 300px;
+    }
+  }
+
+  /* Map two-col */
+  .map-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: start;
+  }
+  @media (max-width: 820px) {
+    .map-grid {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+  }
+
+  /* Hero CTA buttons */
+  .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  /* Small-info grid in map */
+  .clinic-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 480px) {
+    .clinic-info-grid { grid-template-columns: 1fr 1fr; }
+  }
+
   .stat-strip {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -364,7 +413,7 @@ function Hero() {
       <div className="shape-b" style={{ position:"absolute", bottom:"80px", left:"-80px", width:360, height:360, borderRadius:"50%", background:"rgba(255,255,255,0.03)", pointerEvents:"none" }} />
       <div style={{ position:"absolute", top:"20%", right:"8%", width:120, height:120, borderRadius:"30px", background:"rgba(255,255,255,0.05)", transform:"rotate(20deg)", pointerEvents:"none" }} />
 
-      <div style={{ maxWidth:1100, margin:"0 auto", width:"100%", position:"relative", zIndex:1, display:"grid", gridTemplateColumns:"1fr 1fr", gap:48, alignItems:"center" }}>
+      <div className="hero-grid" style={{ maxWidth:1100, margin:"0 auto", width:"100%", position:"relative", zIndex:1 }}>
 
         {/* Left: text */}
         <div>
@@ -414,7 +463,7 @@ function Hero() {
         </div>
 
         {/* Right: visual card */}
-        <Reveal delay={200} direction="right">
+        <Reveal delay={200} direction="right" className="hero-card-col">
           <div style={{ display:"flex", justifyContent:"center", alignItems:"center" }}>
             <div style={{ background:"rgba(255,255,255,0.10)", border:"1px solid rgba(255,255,255,0.18)", borderRadius:24, padding:28, backdropFilter:"blur(16px)", maxWidth:360, width:"100%" }}>
               <div style={{ background:"#fff", borderRadius:16, padding:20, marginBottom:16 }}>
@@ -663,7 +712,7 @@ function MapSection() {
     <section id="location" style={{ padding:"80px 24px", background:"#fff" }}>
       <div style={{ maxWidth:1100, margin:"0 auto" }}>
         <Reveal>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:40, alignItems:"start" }}>
+          <div className="map-grid">
 
             {/* Left: info */}
             <div>
@@ -684,7 +733,7 @@ function MapSection() {
                 </div>
               </div>
 
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              <div className="clinic-info-grid">
                 {[
                   { icon:"📞", label:"Phone",   val:"+91 97536 32223" },
                   { icon:"🕐", label:"Hours",   val:"Mon–Sat, 9AM–7PM" },
@@ -725,11 +774,6 @@ function MapSection() {
         </Reveal>
       </div>
 
-      <style>{`
-        @media (max-width: 768px) {
-          #location .map-grid { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </section>
   );
 }
