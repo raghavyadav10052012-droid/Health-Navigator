@@ -318,11 +318,84 @@ const GLOBAL_CSS = `
 `;
 
 /* ══════════════════════════════════════════════════════════════════════
+   DONATE MODAL
+══════════════════════════════════════════════════════════════════════ */
+function DonateModal({ onClose }: { onClose: () => void }) {
+  useEffect(() => {
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", esc);
+    document.body.style.overflow = "hidden";
+    return () => { document.removeEventListener("keydown", esc); document.body.style.overflow = ""; };
+  }, [onClose]);
+
+  return (
+    <div onClick={onClose} style={{
+      position:"fixed", inset:0, zIndex:3000,
+      background:"rgba(0,0,0,0.55)", backdropFilter:"blur(4px)",
+      display:"flex", alignItems:"center", justifyContent:"center",
+      padding:20,
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background:"#fff", borderRadius:24,
+        padding:"28px 24px 24px", maxWidth:360, width:"100%",
+        boxShadow:"0 24px 64px rgba(0,0,0,0.22)",
+        textAlign:"center", position:"relative",
+        animation:"modal-in 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards",
+      }}>
+        <style>{`
+          @keyframes modal-in {
+            from { opacity:0; transform:scale(0.85) translateY(20px); }
+            to   { opacity:1; transform:scale(1) translateY(0); }
+          }
+        `}</style>
+
+        {/* Close */}
+        <button onClick={onClose} style={{
+          position:"absolute", top:14, right:14,
+          background:"#F3F4F6", border:"none", borderRadius:"50%",
+          width:32, height:32, cursor:"pointer", fontSize:16,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          color:C.muted, transition:"background 0.18s",
+        }}>✕</button>
+
+        {/* Heart icon */}
+        <div style={{ fontSize:36, marginBottom:8 }}>💚</div>
+        <h2 style={{ fontSize:22, fontWeight:800, color:C.text, marginBottom:6 }}>Support MedGuide</h2>
+        <p style={{ fontSize:14, color:C.muted, lineHeight:1.6, marginBottom:20 }}>
+          Scan the QR code below to donate via Paytm UPI and help us keep healthcare navigation free for Indore.
+        </p>
+
+        {/* QR card */}
+        <div style={{
+          border:`1px solid ${C.border}`, borderRadius:16, overflow:"hidden",
+          boxShadow:"0 4px 16px rgba(0,0,0,0.08)", marginBottom:18,
+        }}>
+          <img
+            src={`${BASE}paytm-qr.jpg`}
+            alt="Paytm QR Code — Jagrati Homeopathy Clinic"
+            style={{ width:"100%", height:"auto", display:"block" }}
+          />
+        </div>
+
+        <div style={{ background:C.lighter, borderRadius:10, padding:"10px 14px", fontSize:13, color:C.primary, fontWeight:600, marginBottom:16 }}>
+          📱 Open Paytm / any UPI app → Scan QR → Done!
+        </div>
+
+        <button className="btn-primary" onClick={onClose} style={{ width:"100%", justifyContent:"center", padding:"12px" }}>
+          Done — Thank You 💚
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════
    NAVBAR
 ══════════════════════════════════════════════════════════════════════ */
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [donate, setDonate] = useState(false);
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 12);
     window.addEventListener("scroll", fn);
@@ -337,6 +410,7 @@ function Navbar() {
   ];
 
   return (
+    <>
     <nav style={{
       position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000,
       background: scrolled ? "rgba(255,255,255,0.97)" : "#fff",
@@ -354,6 +428,17 @@ function Navbar() {
         </div>
 
         <div className="desktop-nav" style={{ display:"flex", alignItems:"center", gap:12 }}>
+          <button className="btn-sm" onClick={() => setDonate(true)} style={{
+            background:"linear-gradient(135deg,#16A34A,#15803D)", color:"#fff",
+            border:"none", borderRadius:10, padding:"8px 16px", fontSize:13, fontWeight:700,
+            cursor:"pointer", fontFamily:"inherit", display:"inline-flex", alignItems:"center", gap:5,
+            transition:"transform 0.18s, box-shadow 0.18s",
+          }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform="translateY(-2px)"; (e.currentTarget as HTMLButtonElement).style.boxShadow="0 6px 16px rgba(21,128,61,0.35)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform="translateY(0)"; (e.currentTarget as HTMLButtonElement).style.boxShadow="none"; }}
+          >
+            💚 Donate
+          </button>
           <a href="tel:+919753632223" style={{ textDecoration:"none" }}>
             <button className="btn-outline btn-sm">📞 Contact</button>
           </a>
@@ -381,12 +466,22 @@ function Navbar() {
               color:C.text, textDecoration:"none", fontSize:15, fontWeight:500,
             }}>{l.label}</a>
           ))}
-          <a href="#doctors" style={{ textDecoration:"none", display:"block", marginTop:16 }}>
+          <button onClick={() => { setDonate(true); setOpen(false); }} style={{
+            width:"100%", marginTop:12, padding:"12px", borderRadius:10, border:"none",
+            background:"linear-gradient(135deg,#16A34A,#15803D)", color:"#fff",
+            fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit",
+            display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+          }}>
+            💚 Donate — Support Us
+          </button>
+          <a href="#doctors" style={{ textDecoration:"none", display:"block", marginTop:10 }}>
             <button className="btn-primary" style={{ width:"100%" }}>Book Appointment</button>
           </a>
         </div>
       </div>
     </nav>
+    {donate && <DonateModal onClose={() => setDonate(false)} />}
+    </>
   );
 }
 
