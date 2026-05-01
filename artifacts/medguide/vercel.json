@@ -1,0 +1,11 @@
+{
+  "outputDirectory": "dist/public",
+  "buildCommand": "pnpm run build",
+  "installCommand": "pnpm install",
+  "build": {
+    "env": {
+      "PORT": "3000",
+      "BASE_PATH": "/"
+    }
+  }
+}
