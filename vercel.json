@@ -2,11 +2,12 @@
   "version": 2,
   "framework": null,
   "installCommand": "pnpm install",
-  "buildCommand": "pnpm --filter @workspace/api-server run build",
-  "outputDirectory": "artifacts/api-server/dist",
+  "buildCommand": "pnpm --filter @workspace/medguide run build",
+  "outputDirectory": "artifacts/medguide/dist/public",
   "build": {
     "env": {
-      "VERCEL_FORCE_NO_BUILD_ERRORS": "1"
+      "PORT": "3000",
+      "BASE_PATH": "/"
     }
   }
 }
