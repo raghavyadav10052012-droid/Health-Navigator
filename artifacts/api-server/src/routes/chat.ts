@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
 
@@ -64,7 +65,7 @@ router.post("/chat", async (req, res) => {
 
     if (!response.ok) {
       const err = await response.text();
-      req.log.error({ status: response.status, err }, "Groq API error");
+      logger.error({ status: response.status, err }, "Groq API error");
       res.status(502).json({ error: "AI service error. Please try again." });
       return;
     }
@@ -76,7 +77,7 @@ router.post("/chat", async (req, res) => {
     const reply = data.choices?.[0]?.message?.content ?? "Sorry, I couldn't generate a response.";
     res.json({ reply });
   } catch (err) {
-    req.log.error({ err }, "Chat route error");
+    logger.error({ err }, "Chat route error");
     res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 });
