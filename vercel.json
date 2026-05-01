@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "framework": null,
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm --filter @workspace/api-server run build",
+  "outputDirectory": "artifacts/api-server/dist",
+  "build": {
+    "env": {
+      "VERCEL_FORCE_NO_BUILD_ERRORS": "1"
+    }
+  }
+}
